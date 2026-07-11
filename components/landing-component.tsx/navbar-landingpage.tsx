@@ -94,12 +94,14 @@ export const NavbarLandingPage = () => {
         <div className="hidden md:flex items-center gap-3">
           <ModeToggle />
           <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-800 pl-3">
-            <Button
-              variant="ghost"
-              className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
-            >
-              Đăng nhập
-            </Button>
+            <Link href="/login">
+              <Button
+                variant="ghost"
+                className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+              >
+                Đăng nhập
+              </Button>
+            </Link>
             <Button className="rounded-full bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-600/20 transition-all duration-300 hover:scale-[1.02]">
               Đăng ký miễn phí
             </Button>
