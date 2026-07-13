@@ -1,4 +1,4 @@
-import z from "zod";
+import z, { email } from "zod";
 
 const ROLE = {
   MANAGER: "manager",
@@ -40,4 +40,8 @@ const signUpSchema = z
     }
   });
 
-export { loginSchema, signUpSchema, ROLE };
+const forgotPasswordSchema = z.object({
+  email: z.string().email({ message: "Email không hợp lệ" }),
+});
+
+export { loginSchema, signUpSchema, ROLE, forgotPasswordSchema };
