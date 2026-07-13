@@ -34,9 +34,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-clients";
+import { authService } from "@/services/auth.services";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [view, setView] = useState(false);
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -46,9 +52,36 @@ export default function LoginPage() {
     },
   });
 
-  const handleSubmit = (values: z.infer<typeof loginSchema>) => {
-    console.log(values);
+  const handleSubmit = async (values: z.infer<typeof loginSchema>) => {
+    try {
+      // Gọi thẳng client của Better-Auth để nó tự xử lý ghi Cookie lên trình duyệt
+      const { data, error } = await authClient.signIn.email({
+        email: values.email,
+        password: values.password,
+      });
+
+      if (error) {
+        console.error("Lỗi đăng nhập:", error.message);
+        return;
+      }
+
+      console.log("Đăng nhập thành công:", data);
+
+      // Refresh để middleware nhận cookie mới và chuyển hướng
+      router.refresh();
+      router.push("/dashboard");
+    } catch (err) {
+      console.error("Lỗi hệ thống:", err);
+    }
   };
+  const handleGoogleSignIn = async () => {
+    setLoadingGoogle(true);
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/dashboard", // Chuyển hướng về trang này sau khi đăng nhập thành công
+    });
+  };
+
   return (
     <Card className="space-y-6 rounded-md">
       <CardHeader>
@@ -75,7 +108,6 @@ export default function LoginPage() {
                     <Input
                       {...field}
                       placeholder="email@example.com"
-                      autoComplete="off"
                       className="rounded-md pl-10 pr-4 bg-zinc-50 border-zinc-200 focus-visible:ring-orange-500"
                     />
                   </div>
@@ -96,9 +128,12 @@ export default function LoginPage() {
                       <ShieldCheck className="w-4 h-4" />
                       Password
                     </span>
-                    <p className="text-amber-600 cursor-pointer font-bold text-xs">
+                    <Link
+                      href={"/forgot-password"}
+                      className="text-amber-600 cursor-pointer font-bold text-xs"
+                    >
                       Forgot password ?
-                    </p>
+                    </Link>
                   </FieldLabel>
                   <div className="relative flex items-center w-full">
                     <Key className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
@@ -158,8 +193,14 @@ export default function LoginPage() {
         </div>
 
         <div className="flex items-center justify-center gap-4">
-          <Button className="py-6" size={"lg"} variant={"outline"}>
-            Google
+          <Button
+            onClick={handleGoogleSignIn}
+            disabled={loadingGoogle}
+            className="py-6"
+            size={"lg"}
+            variant={"outline"}
+          >
+            {loadingGoogle ? "Đang kết nối..." : "Google"}
           </Button>
           <Button className="py-6" size={"lg"} variant={"outline"}>
             SSO
@@ -169,7 +210,7 @@ export default function LoginPage() {
           <span className="flex gap-3 items-center font-bold justify-center w-full">
             Don't have account ?{" "}
             <Link href={"/sign-up"}>
-              <p className="text-amber-600 text-sm">Sign up</p>
+              <p className="text-amber-600 text-sm hover:underline">Sign up</p>
             </Link>
           </span>
         </CardFooter>

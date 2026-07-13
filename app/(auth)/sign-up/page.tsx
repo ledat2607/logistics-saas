@@ -40,10 +40,14 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import { toast } from "sonner";
+import { authService } from "@/services/auth.services";
+import { useRouter } from "next/navigation";
 
 export default function SignUpPage() {
   const [view, setView] = useState(false);
   const [confirm, setComfirm] = useState(false);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
@@ -51,7 +55,7 @@ export default function SignUpPage() {
       name: "",
       companyName: "",
       email: "",
-      role: ROLE.DISPATCHER,
+      role: ROLE.MANAGER,
       password: "",
       confirmPassword: "",
       acceptTerms: false,
@@ -62,8 +66,14 @@ export default function SignUpPage() {
 
   const currentRole = form.watch("role");
 
-  const handleSubmit = (values: z.infer<typeof signUpSchema>) => {
-    console.log("Sign Up Data:", values);
+  const handleSubmit = async (values: z.infer<typeof signUpSchema>) => {
+    try {
+      const result = await authService.register(values);
+      toast.success((result?.response?.message as any) || "Đăng ký thành công");
+      router.push("/dashboard");
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   return (
@@ -171,7 +181,7 @@ export default function SignUpPage() {
                   </FieldLabel>
                   <RadioGroup
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                     className="grid grid-cols-3 gap-2 w-full"
                   >
                     {/* Fleet Manager */}
@@ -262,7 +272,7 @@ export default function SignUpPage() {
               />
             )}
             {/* PASSWORD & CONFIRM PASSWORD CHIA 2 CỘT */}
-            <div className="grid grid-cols-2 gap-3 w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 w-full">
               {/* PASSWORD */}
               <Controller
                 name="password"
