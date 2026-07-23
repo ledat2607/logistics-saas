@@ -5,7 +5,7 @@ import {
   Hero,
   NavbarLandingPage,
   WhyChooise,
-} from "@/components/landing-component.tsx";
+} from "@/components/landing-component"
 
 import {
   Computer,
