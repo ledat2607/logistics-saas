@@ -6,7 +6,7 @@ import * as dbSchema from "@/db/schema"; // Đảm bảo import toàn bộ schem
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
-    schema: dbSchema, // Bắt buộc phải có để Better-Auth đọc được bảng user mở rộng
+    schema: dbSchema,
   }),
   emailAndPassword: {
     enabled: true,
@@ -17,11 +17,11 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
   },
- 
+
   user: {
     additionalFields: {
       companyName: {
-        type: "string", 
+        type: "string",
       },
       role: {
         type: "string",

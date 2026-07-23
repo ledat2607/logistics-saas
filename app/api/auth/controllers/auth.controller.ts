@@ -5,9 +5,6 @@ import { user } from "@/db/schema";
 import bcrypt from "bcrypt";
 
 export const authController = {
-  /**
-   * Logic Đăng ký tài khoản
-   */
   register: async (request: NextRequest) => {
     try {
       const body = await request.json();

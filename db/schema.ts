@@ -5,6 +5,8 @@ import {
   boolean,
   integer,
   serial,
+  pgEnum,
+  numeric,
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -23,6 +25,13 @@ export const user = pgTable("user", {
   role: text("role").default("DRIVER"),
   fleetSize: integer("fleet_size"),
 });
+
+export const vehicleStatusEnum = pgEnum("vehicle_status", [
+  "AVAILABLE",
+  "IN_TRANSIT",
+  "MAINTENANCE",
+  "INACTIVE",
+]);
 
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
@@ -62,4 +71,53 @@ export const verification = pgTable("verification", {
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updated_at"),
+});
+
+export const vehicles = pgTable("vehicles", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  licensePlate: text("license_plate").notNull().unique(),
+  brand: text("brand"),
+  model: text("model"),
+  year: integer("year"),
+  capacityKg: numeric("capacity_kg"),
+  fuelType: text("fuel_type"),
+  status: vehicleStatusEnum("status").default("AVAILABLE").notNull(),
+
+  ownerId: text("owner_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const vehicleAssignments = pgTable("vehicle_assignments", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  vehicleId: text("vehicle_id")
+    .notNull()
+    .references(() => vehicles.id, { onDelete: "cascade" }),
+  driverId: text("driver_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+  unassignedAt: timestamp("unassigned_at"), // Nối null nếu tài xế vẫn đang nhận xe
+  isCurrent: boolean("is_current").default(true).notNull(),
+});
+
+export const maintenanceLogs = pgTable("maintenance_logs", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  vehicleId: text("vehicle_id")
+    .notNull()
+    .references(() => vehicles.id, { onDelete: "cascade" }),
+  description: text("description").notNull(), // Nội dung bảo dưỡng/thay dầu/thay lốp...
+  cost: numeric("cost"), // Chi phí bảo dưỡng
+  maintenanceDate: timestamp("maintenance_date").notNull(),
+  nextDueDate: timestamp("next_due_date"), // Ngày hẹn bảo dưỡng tiếp theo
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });

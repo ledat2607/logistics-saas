@@ -7,6 +7,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
+  ArrowRight,
   Car,
   Home,
   MenuIcon,
@@ -16,6 +17,7 @@ import {
   WandSparkles,
   X,
 } from "lucide-react";
+import { authClient } from "@/lib/auth-clients";
 
 const navLanding = [
   {
@@ -48,6 +50,9 @@ const navLanding = [
 export const NavbarLandingPage = () => {
   const pathName = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+
+  const { data: session, isPending } = authClient.useSession();
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md transition-all duration-300 ease-in-out">
       <div className="w-full flex justify-between items-center px-4 py-2">
@@ -58,7 +63,6 @@ export const NavbarLandingPage = () => {
           </h2>
         </span>
 
-        {/* Desktop Menu Items với hiệu ứng Liquid Glass */}
         <div className="hidden md:flex items-center gap-1 bg-slate-200/20 dark:bg-slate-900/50 p-1.5 rounded-full border border-slate-200/80 dark:border-slate-800/50 backdrop-blur-2xl shadow">
           {navLanding.map((item) => (
             <Link
@@ -93,19 +97,27 @@ export const NavbarLandingPage = () => {
         {/* Desktop Actions & Toggle */}
         <div className="hidden md:flex items-center gap-3">
           <ModeToggle />
-          <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-800 pl-3">
-            <Link href="/login">
-              <Button
-                variant="ghost"
-                className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
-              >
-                Đăng nhập
+          {session ? (
+            <Link href={"/dashboard"}>
+              <Button>
+                Go to Dashboard <ArrowRight className="w-4 h-4 ml-4" />
               </Button>
             </Link>
-            <Button className="rounded-full bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-600/20 transition-all duration-300 hover:scale-[1.02]">
-              Đăng ký miễn phí
-            </Button>
-          </div>
+          ) : (
+            <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-800 pl-3">
+              <Link href="/login">
+                <Button
+                  variant="ghost"
+                  className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                >
+                  Đăng nhập
+                </Button>
+              </Link>
+              <Button className="rounded-full bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-600/20 transition-all duration-300 hover:scale-[1.02]">
+                Đăng ký miễn phí
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Mobile Controls (Menu button + Theme Toggle) */}
