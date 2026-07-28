@@ -47,4 +47,77 @@ export const fleetService = {
     }
     return resData;
   },
+
+  delete: async (id: any) => {
+    const response = await fetch(`${API_URL}/delete`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id }),
+    });
+
+    const resData = await response.json();
+
+    if (!response.ok) {
+      const errorMessage =
+        typeof resData.error === "string"
+          ? resData.error
+          : resData.message || "Đã xảy ra lỗi khi xóa phương tiện";
+
+      throw new Error(errorMessage);
+    }
+    return resData;
+  },
+
+  getDrivers: async () => {
+    const response = await fetch(`${API_URL}/get-drivers`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const resData = await response.json();
+
+    if (!response.ok) {
+      const errorMessage =
+        typeof resData.error === "string"
+          ? resData.error
+          : resData.message || "Đã xảy ra lỗi khi lấy danh sách tài xế";
+
+      throw new Error(errorMessage);
+    }
+
+    return resData;
+  },
+
+  assignDriver: async ({
+    vehicleId,
+    driverId,
+  }: {
+    vehicleId: string;
+    driverId: string;
+  }) => {
+     const response = await fetch(`${API_URL}/assign-drivers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({vehicleId, driverId}),
+    });
+
+    const resData = await response.json();
+
+    if (!response.ok) {
+      const errorMessage =
+        typeof resData.error === "string"
+          ? resData.error
+          : resData.message || "Đã xảy ra lỗi khi lấy danh sách tài xế";
+
+      throw new Error(errorMessage);
+    }
+
+    return resData;
+  },
 };

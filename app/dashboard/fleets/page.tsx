@@ -14,13 +14,13 @@ export default function FleetPage() {
   const stats = {
     total: fleets.length,
     inTransit: fleets.filter(
-      (item) => (item.vehicle?.status || item.status) === "IN_TRANSIT"
+      (item) => (item.vehicle?.status || item.status) === "IN_TRANSIT",
     ).length,
     available: fleets.filter(
-      (item) => (item.vehicle?.status || item.status) === "AVAILABLE"
+      (item) => (item.vehicle?.status || item.status) === "AVAILABLE",
     ).length,
     maintenance: fleets.filter(
-      (item) => (item.vehicle?.status || item.status) === "MAINTENANCE"
+      (item) => (item.vehicle?.status || item.status) === "MAINTENANCE",
     ).length,
   };
 
@@ -49,11 +49,9 @@ export default function FleetPage() {
       ) : error ? (
         <div className="text-red-500 text-sm">Lỗi: {error}</div>
       ) : (
-        /* 💡 Truyền danh sách fleets (chứa vehicle & owner) và stats vào FleetsContainer */
-        <FleetsContainer stats={stats} fleets={fleets} />
+        <FleetsContainer stats={stats} fleets={fleets} onSuccess={refetch}/>
       )}
 
-      {/* Truyền refetch vào Dialog để reload danh sách sau khi thêm xe thành công */}
       <CreateFleetDialog open={open} setOpen={setOpen} onSuccess={refetch} />
     </div>
   );

@@ -89,6 +89,10 @@ export const vehicles = pgTable("vehicles", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
 
+  driverId: text("driver_id").references(() => user.id, {
+    onDelete: "set null",
+  }),
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

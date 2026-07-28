@@ -25,7 +25,6 @@ import { getAllBrands, getModelsByBrandName } from "@/db/vehicle-brands";
 import { fleetService } from "@/services/fleet.services";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Delete, Loader2, Rocket, Send } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -42,7 +41,6 @@ const CreateFleetDialog = ({
   setOpen,
   onSuccess,
 }: CreateFleetDialogProps) => {
-  const router = useRouter();
   const brandList = getAllBrands();
   const [loading, setLoading] = useState(false);
 
