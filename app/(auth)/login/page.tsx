@@ -54,7 +54,6 @@ export default function LoginPage() {
 
   const handleSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
-      // Gọi thẳng client của Better-Auth để nó tự xử lý ghi Cookie lên trình duyệt
       const { data, error } = await authClient.signIn.email({
         email: values.email,
         password: values.password,
@@ -67,7 +66,6 @@ export default function LoginPage() {
 
       console.log("Đăng nhập thành công:", data);
 
-      // Refresh để middleware nhận cookie mới và chuyển hướng
       router.refresh();
       router.push("/dashboard");
     } catch (err) {
@@ -78,7 +76,7 @@ export default function LoginPage() {
     setLoadingGoogle(true);
     await authClient.signIn.social({
       provider: "google",
-      callbackURL: "/dashboard", // Chuyển hướng về trang này sau khi đăng nhập thành công
+      callbackURL: "/dashboard", 
     });
   };
 
@@ -108,7 +106,7 @@ export default function LoginPage() {
                     <Input
                       {...field}
                       placeholder="email@example.com"
-                      className="rounded-md pl-10 pr-4 bg-zinc-50 border-zinc-200 focus-visible:ring-orange-500"
+                      className="rounded-md pl-10 pr-4  border-zinc-200 focus-visible:ring-orange-500"
                     />
                   </div>
                   {fieldState.invalid && (
@@ -143,7 +141,7 @@ export default function LoginPage() {
                       type={view ? "text" : "password"}
                       placeholder="**********"
                       autoComplete="off"
-                      className="rounded-md pl-10 pr-4 bg-zinc-50 border-zinc-200 focus-visible:ring-orange-500"
+                      className="rounded-md pl-10 pr-4 border-zinc-200 focus-visible:ring-orange-500"
                     />
                     {view ? (
                       <Button

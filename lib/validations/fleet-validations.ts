@@ -10,7 +10,6 @@ export const vehicleStatusSchema = z.enum([
 
 export const vehiclefuelSchema = z.enum(["DIESEL", "ELECTRIC", "PETROL"]);
 
-// 2. Schema validate Form Thêm/Sửa Xe
 export const createVehicleSchema = z.object({
   licensePlate: z
     .string()

@@ -4,7 +4,7 @@ import { user, vehicles } from "@/db/schema";
 import { createVehicleSchema } from "@/lib/validations/fleet-validations";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { desc, eq } from "drizzle-orm";
+import { aliasedTable, and, desc, eq } from "drizzle-orm";
 
 export const fleetController = {
   /**
@@ -21,6 +21,14 @@ export const fleetController = {
               "Bạn chưa đăng nhập hoặc không có quyền thực hiện hành động này",
           },
           { status: 401 },
+        );
+      }
+
+      const userRole = (session.user as any).role;
+      if (userRole === "DRIVER") {
+        return NextResponse.json(
+          { error: "Tài xế không có quyền thêm mới phương tiện!" },
+          { status: 403 },
         );
       }
 
@@ -96,7 +104,7 @@ export const fleetController = {
     }
   },
 
-  getAllFleet: async (request: NextRequest) => {
+  getAllFleet: async () => {
     try {
       const session = await auth.api.getSession({ headers: await headers() });
 
@@ -110,6 +118,8 @@ export const fleetController = {
         );
       }
 
+      const driverUser = aliasedTable(user, "driverUser");
+
       const fleetList = await db
         .select({
           vehicle: vehicles,
@@ -119,9 +129,17 @@ export const fleetController = {
             email: user.email,
             image: user.image,
           },
+          // ➕ BỔ SUNG: Lấy object driver
+          driver: {
+            id: driverUser.id,
+            name: driverUser.name,
+            email: driverUser.email,
+            image: driverUser.image,
+          },
         })
         .from(vehicles)
         .leftJoin(user, eq(vehicles.ownerId, user.id))
+        .leftJoin(driverUser, eq(vehicles.driverId, driverUser.id)) 
         .where(eq(vehicles.ownerId, session.user.id))
         .orderBy(desc(vehicles.createdAt));
 
@@ -131,6 +149,194 @@ export const fleetController = {
     } catch (error: any) {
       return NextResponse.json(
         { error: error.message || "Lấy danh sách xe thất bại" },
+        { status: 500 },
+      );
+    }
+  },
+
+  deleteFleet: async (
+    request: NextRequest,
+    { params }: { params?: Promise<{ id: string }> },
+  ) => {
+    try {
+      const session = await auth.api.getSession({ headers: await headers() });
+
+      if (!session || !session.user) {
+        return NextResponse.json(
+          {
+            error:
+              "Bạn chưa đăng nhập hoặc không có quyền thực hiện hành động này",
+          },
+          { status: 401 },
+        );
+      }
+
+      const userRole = (session.user as any).role;
+      if (userRole === "DRIVER") {
+        return NextResponse.json(
+          { error: "Tài xế không có quyền xóa phương tiện!" },
+          { status: 403 },
+        );
+      }
+
+      let vehicleId: string | null = null;
+
+      if (params) {
+        const resolvedParams = await params;
+        vehicleId = resolvedParams.id;
+      }
+
+      if (!vehicleId) {
+        const { searchParams } = new URL(request.url);
+        vehicleId = searchParams.get("id");
+      }
+
+      if (!vehicleId) {
+        try {
+          const body = await request.json();
+          vehicleId = body.id || body.vehicleId;
+        } catch {}
+      }
+
+      console.log(vehicleId);
+      if (!vehicleId) {
+        return NextResponse.json(
+          { error: "Thiếu ID phương tiện cần xóa!" },
+          { status: 400 },
+        );
+      }
+
+      const [deletedVehicle] = await db
+        .delete(vehicles)
+        .where(
+          and(
+            eq(vehicles.id, vehicleId),
+            eq(vehicles.ownerId, session.user.id),
+          ),
+        )
+        .returning();
+
+      if (!deletedVehicle) {
+        return NextResponse.json(
+          {
+            error:
+              "Không tìm thấy phương tiện hoặc bạn không có quyền xóa phương tiện này!",
+          },
+          { status: 404 },
+        );
+      }
+
+      return NextResponse.json(
+        {
+          message: "Xóa phương tiện thành công!",
+          data: deletedVehicle,
+        },
+        { status: 200 },
+      );
+    } catch (error: any) {
+      console.error("Lỗi khi xóa phương tiện:", error);
+      return NextResponse.json(
+        {
+          error: error.message || "Xóa phương tiện thất bại. Vui lòng thử lại!",
+        },
+        { status: 500 },
+      );
+    }
+  },
+  /*
+  Get Driver for manager */
+  getDrivers: async (request: NextRequest) => {
+    try {
+      const session = await auth.api.getSession({ headers: await headers() });
+
+      if (!session || !session.user) {
+        return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
+      }
+
+      const driversList = await db
+        .select({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+        })
+        .from(user)
+        .where(eq(user.role, "DRIVER"));
+
+      return NextResponse.json({ data: driversList });
+    } catch (error: any) {
+      return NextResponse.json(
+        { error: "Lỗi lấy danh sách tài xế" },
+        { status: 500 },
+      );
+    }
+  },
+
+  /**
+   * Assign or Unassign Driver to a Vehicle
+   */
+  assignDriver: async (request: NextRequest) => {
+    try {
+      const session = await auth.api.getSession({ headers: await headers() });
+
+      if (!session || !session.user) {
+        return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
+      }
+
+      // Chặn Driver tự phân công
+      const userRole = (session.user as any).role;
+      if (userRole === "DRIVER") {
+        return NextResponse.json(
+          { error: "Bạn không có quyền thực hiện thao tác này!" },
+          { status: 403 },
+        );
+      }
+
+      const body = await request.json();
+
+      const { vehicleId, driverId } = body;
+
+      if (!vehicleId) {
+        return NextResponse.json(
+          { error: "Thiếu ID phương tiện" },
+          { status: 400 },
+        );
+      }
+
+      const [updatedVehicle] = await db
+        .update(vehicles)
+        .set({
+          driverId: driverId || null,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(vehicles.id, vehicleId),
+            eq(vehicles.ownerId, session.user.id),
+          ),
+        )
+        .returning();
+
+      if (!updatedVehicle) {
+        return NextResponse.json(
+          {
+            error:
+              "Không tìm thấy phương tiện hoặc bạn không có quyền cập nhật!",
+          },
+          { status: 404 },
+        );
+      }
+
+      return NextResponse.json({
+        message: driverId
+          ? "Phân công tài xế thành công!"
+          : "Đã hủy phân công tài xế!",
+        data: updatedVehicle,
+      });
+    } catch (error: any) {
+      console.error("Lỗi phân công tài xế:", error);
+      return NextResponse.json(
+        { error: "Cập nhật phân công tài xế thất bại" },
         { status: 500 },
       );
     }

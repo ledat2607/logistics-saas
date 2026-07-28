@@ -1,6 +1,5 @@
-import { NextRequest } from "next/server";
 import { fleetController } from "../controllers/fleet.controller";
 
-export async function GET(request: NextRequest) {
-  return fleetController.getAllFleet(request);
+export async function GET() {
+  return fleetController.getAllFleet();
 }
