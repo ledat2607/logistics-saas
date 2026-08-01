@@ -24,7 +24,7 @@ export const createVehicleSchema = z.object({
     .number({ message: "Năm sản xuất phải là số" })
     .min(1990, "Năm sản xuất không hợp lệ")
     .max(new Date().getFullYear(), "Năm sản xuất không được vượt quá hiện tại"),
-    
+
   capacityKg: z.coerce
     .number()
     .positive("Tải trọng phải lớn hơn 0")
@@ -32,6 +32,7 @@ export const createVehicleSchema = z.object({
     .transform((val) =>
       val !== undefined && val !== null ? String(val) : null,
     ),
+  image: z.union([z.string(), z.instanceof(File), z.null()]).optional(),
   fuelType: vehiclefuelSchema.default("DIESEL"),
   status: vehicleStatusSchema.default("AVAILABLE"),
 });

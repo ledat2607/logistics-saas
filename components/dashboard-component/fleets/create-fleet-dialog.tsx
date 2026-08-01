@@ -24,36 +24,41 @@ import { createVehicleSchema } from "@/lib/validations/fleet-validations";
 import { getAllBrands, getModelsByBrandName } from "@/db/vehicle-brands";
 import { fleetService } from "@/services/fleet.services";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Delete, Loader2, Rocket, Send } from "lucide-react";
+import { Delete, Loader2, Pencil, Rocket, Send } from "lucide-react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { useState } from "react";
+import { deleteImageFromFirebase, useUploadImage } from "@/hooks/useUploadImage";
 
 interface CreateFleetDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   onSuccess: () => void;
+  data?: any;
 }
 
 const CreateFleetDialog = ({
   open,
   setOpen,
   onSuccess,
+  data,
 }: CreateFleetDialogProps) => {
   const brandList = getAllBrands();
   const [loading, setLoading] = useState(false);
+  const { uploadImage, uploading, progress } = useUploadImage();
 
   const form = useForm<z.infer<typeof createVehicleSchema>>({
     resolver: zodResolver(createVehicleSchema) as any,
     defaultValues: {
-      brand: "",
-      licensePlate: "",
-      model: "",
-      year: 1999,
-      capacityKg: "",
-      fuelType: "DIESEL",
-      status: "AVAILABLE",
+      brand: data?.brand || "",
+      licensePlate: data?.licensePlate || "",
+      model: data?.model || "",
+      year: data?.year || 1999,
+      capacityKg: data?.capacityKg || "",
+      fuelType: data?.fuelType || "DIESEL",
+      status: data?.status || "AVAILABLE",
+      image: data?.image || "",
     },
   });
 
@@ -63,21 +68,39 @@ const CreateFleetDialog = ({
   });
   const availableModels = getModelsByBrandName(selectedBrand);
 
-  async function onSubmit(data: z.infer<typeof createVehicleSchema>) {
+  async function onSubmit(formData: z.infer<typeof createVehicleSchema>) {
     try {
       setLoading(true);
 
-      const result = await fleetService.create(data as any);
+      const currentImage = form.getValues("image");
+      let imageUrl = typeof currentImage === "string" ? currentImage : "";
 
-      toast.success(result?.message || "Thêm mới thành công");
+      if (currentImage instanceof File) {
+        console.log("Đang upload ảnh lên Firebase...", currentImage);
+        imageUrl = await uploadImage(currentImage, "vehicles");
+        console.log("Upload thành công, URL:", imageUrl);
+      }
+
+      const payload = {
+        ...formData,
+        image: imageUrl,
+      };
+
+      let result;
+      if (data?.id) {
+        result = await fleetService.update(data.id, payload as any);
+        toast.success(result?.message || "Cập nhật thông tin xe thành công");
+      } else {
+        result = await fleetService.create(payload as any);
+        toast.success(result?.message || "Thêm mới xe thành công");
+      }
 
       form.reset();
       setOpen(false);
       if (onSuccess) onSuccess();
     } catch (error: any) {
-      console.error("Lỗi khi đăng ký xe:", error);
-
-      toast.error(error.message || "Thêm mới thất bại");
+      console.error("Lỗi khi xử lý xe:", error);
+      toast.error(error.message || "Thao tác thất bại");
     } finally {
       setLoading(false);
     }
@@ -85,22 +108,129 @@ const CreateFleetDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
+      <DialogContent className={"overscroll-y-auto"}>
         <DialogHeader className="space-y-1.5 text-left">
           <DialogTitle className="text-2xl font-bold tracking-tight">
-            Create new fleets
+            {data ? "Edit Fleet" : "Create Fleet"}
           </DialogTitle>
           <DialogDescription className="flex items-center gap-2 text-sm text-muted-foreground">
             <Rocket
               className="w-4 h-4 shrink-0 text-orange-500"
               strokeWidth={2.5}
             />
-            <span>Create a new fleet to get started with your trip.</span>
+            <span>
+              {data
+                ? "Edit an existing fleet"
+                : "Create a new fleet to get started with your trip."}
+            </span>
           </DialogDescription>
         </DialogHeader>
         {/*Form */}
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
+            {/*image */}
+            {data ? (
+              <Controller
+                name="image"
+                control={form.control}
+                render={({
+                  field: { onChange, value, ref, name, onBlur },
+                  fieldState,
+                }) => {
+                  const previewUrl =
+                    typeof value === "string" && value.trim() !== ""
+                      ? value
+                      : null;
+
+                  return (
+                    <Field>
+                      <FieldLabel htmlFor="vehicle-image-input">
+                        Vehicle image
+                      </FieldLabel>
+
+                      <div className="border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-gray-400 transition-colors cursor-pointer relative flex flex-col items-center justify-center min-h-35">
+                        {uploading ? (
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <div className="text-sm font-medium text-blue-600">
+                              Đang tải ảnh lên Firebase... {progress}%
+                            </div>
+                            <div className="w-48 bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${progress}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        ) : previewUrl ? (
+                          <div className="relative w-full h-28 flex items-center justify-center">
+                            <img
+                              src={previewUrl}
+                              alt="Vehicle preview"
+                              className="object-contain max-h-28 w-full rounded"
+                            />
+                          </div>
+                        ) : (
+                          <div className="text-sm text-gray-500">
+                            <p className="font-medium">Nhấp để tải ảnh lên</p>
+                            <p className="text-xs text-gray-400">
+                              PNG, JPG, WEBP (Tối đa 5MB)
+                            </p>
+                          </div>
+                        )}
+
+                        <input
+                          id="vehicle-image-input"
+                          type="file"
+                          accept="image/*"
+                          disabled={uploading}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full disabled:cursor-not-allowed"
+                          ref={ref}
+                          name={name}
+                          onBlur={onBlur}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                const newUrl = await uploadImage(
+                                  file,
+                                  "vehicles",
+                                );
+
+                                if (data?.image && data.image !== newUrl) {
+                                  await deleteImageFromFirebase(data.image);
+                                }
+
+                                onChange(newUrl);
+                                toast.success("Tải ảnh mới thành công!");
+                              } catch (err) {
+                                toast.error("Tải ảnh thất bại!");
+                              } finally {
+                                e.target.value = "";
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+
+                      {value && value !== data?.image && (
+                        <button
+                          type="button"
+                          className="text-xs text-red-500 underline mt-1 cursor-pointer"
+                          onClick={() => onChange(data?.image || "")}
+                        >
+                          Khôi phục ảnh ban đầu
+                        </button>
+                      )}
+
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  );
+                }}
+              />
+            ) : null}
+
             {/*Brand */}
             <Controller
               name="brand"
@@ -109,6 +239,7 @@ const CreateFleetDialog = ({
                 <Field>
                   <FieldLabel>Vehicle brand</FieldLabel>
                   <Select
+                    disabled={data}
                     onValueChange={(value) => {
                       field.onChange(value);
                       form.setValue("model", "");
@@ -145,7 +276,9 @@ const CreateFleetDialog = ({
                     <Select
                       onValueChange={field.onChange}
                       value={field.value || ""}
-                      disabled={!selectedBrand || availableModels.length === 0}
+                      disabled={
+                        !selectedBrand || availableModels.length === 0 || data
+                      }
                     >
                       <SelectTrigger aria-invalid={fieldState.invalid}>
                         <SelectValue
@@ -178,6 +311,9 @@ const CreateFleetDialog = ({
                   <Field className="col-span-3">
                     <FieldLabel>Vehicle year</FieldLabel>
                     <Input
+                      disabled={
+                        !selectedBrand || availableModels.length === 0 || data
+                      }
                       {...field}
                       value={field.value ?? ""}
                       aria-invalid={fieldState.invalid}
@@ -303,8 +439,17 @@ const CreateFleetDialog = ({
                   </>
                 ) : (
                   <>
-                    <Send className="mr-2 w-4 h-4" />
-                    Submit
+                    {data ? (
+                      <>
+                        <Pencil className="mr-2 w-4 h-4" />
+                        Update Fleet
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-2 w-4 h-4" />
+                        Submit
+                      </>
+                    )}
                   </>
                 )}
               </Button>

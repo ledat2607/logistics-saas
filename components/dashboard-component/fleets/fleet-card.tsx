@@ -32,6 +32,7 @@ import { FleetVehicle } from "@/lib/types/fleet-type";
 import { toast } from "sonner";
 import { fleetService } from "@/services/fleet.services";
 import AddDrivers from "./add-driver";
+import CreateFleetDialog from "./create-fleet-dialog";
 
 interface FleetItem {
   vehicle: FleetVehicle;
@@ -96,6 +97,7 @@ const FleetsContainer = ({
   );
 
   const [open, setOpen] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
 
   useEffect(() => {
     if (fleets && fleets.length > 0) {
@@ -391,7 +393,10 @@ const FleetsContainer = ({
                 </div>
 
                 <div className="grid lg:grid-cols-12 grid-cols-1 gap-4">
-                  <Button className="w-full mt-2 col-span-6">
+                  <Button
+                    onClick={() => setOpenEdit(true)}
+                    className="w-full mt-2 col-span-6"
+                  >
                     <Pencil className="w-4 h-4 mr-2" />
                     <p className="xl:block hidden">Edit</p>
                   </Button>
@@ -425,6 +430,12 @@ const FleetsContainer = ({
         vehicleId={selectedFleet?.vehicle.id || null}
         currentDriverId={selectedFleet?.driver?.id || null}
         onSuccess={onSuccess}
+      />
+      <CreateFleetDialog
+        open={openEdit}
+        setOpen={setOpenEdit}
+        onSuccess={onSuccess}
+        data={selectedVehicle || null}
       />
     </>
   );

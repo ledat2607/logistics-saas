@@ -84,7 +84,9 @@ export const vehicles = pgTable("vehicles", {
   capacityKg: numeric("capacity_kg"),
   fuelType: text("fuel_type"),
   status: vehicleStatusEnum("status").default("AVAILABLE").notNull(),
-
+  image: text("image").default(
+    `https://netrinoimages.s3.eu-west-2.amazonaws.com/2024/03/01/1692051/648591/rezoro3d_vanto_truck_short_refrigerated_3d_model_c4d_max_obj_fbx_ma_lwo_3ds_3dm_stl_6751154_m.webp`,
+  ),
   ownerId: text("owner_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),

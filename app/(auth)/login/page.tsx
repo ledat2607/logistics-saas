@@ -61,22 +61,26 @@ export default function LoginPage() {
 
       if (error) {
         console.error("Lỗi đăng nhập:", error.message);
+        toast.error("Đăng nhập thất bại!");
         return;
       }
 
-      console.log("Đăng nhập thành công:", data);
+      toast.success("Đăng nhập thành công!");
 
       router.refresh();
-      router.push("/dashboard");
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 2000);
     } catch (err) {
       console.error("Lỗi hệ thống:", err);
+      toast.error("Đã xảy ra lỗi hệ thống!");
     }
   };
   const handleGoogleSignIn = async () => {
     setLoadingGoogle(true);
     await authClient.signIn.social({
       provider: "google",
-      callbackURL: "/dashboard", 
+      callbackURL: "/dashboard",
     });
   };
 

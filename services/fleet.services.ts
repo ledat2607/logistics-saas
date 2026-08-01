@@ -48,25 +48,62 @@ export const fleetService = {
     return resData;
   },
 
-  delete: async (id: any) => {
-    const response = await fetch(`${API_URL}/delete`, {
+  delete: async (id: string) => {
+    const response = await fetch(`${API_URL}/fleet/delete`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({ id }),
     });
 
-    const resData = await response.json();
+    let resData;
+    try {
+      resData = await response.json();
+    } catch (e) {
+      resData = null;
+    }
 
     if (!response.ok) {
       const errorMessage =
-        typeof resData.error === "string"
+        typeof resData?.error === "string"
           ? resData.error
-          : resData.message || "Đã xảy ra lỗi khi xóa phương tiện";
+          : resData?.message ||
+            `Lỗi ${response.status}: Đã xảy ra lỗi khi xóa phương tiện`;
 
       throw new Error(errorMessage);
     }
+
+    return resData;
+  },
+  update: async (id: string, data: VehicleSchema) => {
+    const response = await fetch(`${API_URL}/update-fleets/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(data),
+    });
+
+    let resData;
+    try {
+      resData = await response.json();
+    } catch (e) {
+      resData = null;
+    }
+
+    if (!response.ok) {
+      const errorMessage =
+        typeof resData?.error === "string"
+          ? resData.error
+          : resData?.message ||
+            `Lỗi ${response.status}: Đã xảy ra lỗi khi cập nhật phương tiện`;
+
+      throw new Error(errorMessage);
+    }
+
     return resData;
   },
 
@@ -99,12 +136,12 @@ export const fleetService = {
     vehicleId: string;
     driverId: string;
   }) => {
-     const response = await fetch(`${API_URL}/assign-drivers`, {
+    const response = await fetch(`${API_URL}/assign-drivers`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({vehicleId, driverId}),
+      body: JSON.stringify({ vehicleId, driverId }),
     });
 
     const resData = await response.json();
