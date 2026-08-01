@@ -5,6 +5,7 @@ import { createVehicleSchema } from "@/lib/validations/fleet-validations";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { aliasedTable, and, desc, eq } from "drizzle-orm";
+import { deleteImageFromFirebase } from "@/hooks/useUploadImage";
 
 export const fleetController = {
   /**
@@ -139,7 +140,7 @@ export const fleetController = {
         })
         .from(vehicles)
         .leftJoin(user, eq(vehicles.ownerId, user.id))
-        .leftJoin(driverUser, eq(vehicles.driverId, driverUser.id)) 
+        .leftJoin(driverUser, eq(vehicles.driverId, driverUser.id))
         .where(eq(vehicles.ownerId, session.user.id))
         .orderBy(desc(vehicles.createdAt));
 
@@ -156,7 +157,7 @@ export const fleetController = {
 
   deleteFleet: async (
     request: NextRequest,
-    { params }: { params?: Promise<{ id: string }> },
+    { params }: { params?: Promise<{ id: string }> } = {},
   ) => {
     try {
       const session = await auth.api.getSession({ headers: await headers() });
@@ -183,7 +184,7 @@ export const fleetController = {
 
       if (params) {
         const resolvedParams = await params;
-        vehicleId = resolvedParams.id;
+        vehicleId = resolvedParams?.id || null;
       }
 
       if (!vehicleId) {
@@ -198,7 +199,6 @@ export const fleetController = {
         } catch {}
       }
 
-      console.log(vehicleId);
       if (!vehicleId) {
         return NextResponse.json(
           { error: "Thiếu ID phương tiện cần xóa!" },
@@ -226,6 +226,10 @@ export const fleetController = {
         );
       }
 
+      if (deletedVehicle.image) {
+        await deleteImageFromFirebase(deletedVehicle.image);
+      }
+
       return NextResponse.json(
         {
           message: "Xóa phương tiện thành công!",
@@ -243,6 +247,96 @@ export const fleetController = {
       );
     }
   },
+
+  /**Update fleet */
+  updateFleet: async (
+    request: NextRequest,
+    { params }: { params?: Promise<{ id: string }> },
+  ) => {
+    try {
+      const session = await auth.api.getSession({ headers: await headers() });
+      if (!session || !session.user) {
+        return NextResponse.json(
+          {
+            error:
+              "Bạn chưa đăng nhập hoặc không có quyền thực hiện hành động này",
+          },
+          { status: 401 },
+        );
+      }
+
+      // 2. Kiểm tra Role (DRIVER không được sửa)
+      const userRole = (session.user as any).role;
+      if (userRole === "DRIVER") {
+        return NextResponse.json(
+          { error: "Tài xế không có quyền cập nhật phương tiện!" },
+          { status: 403 },
+        );
+      }
+
+      const resolvedParams = await params;
+      const fleetId = resolvedParams?.id;
+
+      if (!fleetId) {
+        return NextResponse.json(
+          { error: "Thiếu ID phương tiện cần cập nhật" },
+          { status: 400 },
+        );
+      }
+
+      const body = await request.json();
+
+      const {
+        brand,
+        licensePlate,
+        model,
+        year,
+        capacityKg,
+        fuelType,
+        status,
+        image,
+      } = body;
+
+      // 5. Cập nhật vào Database (Ví dụ dùng Prisma)
+      const [updatedFleet] = await db
+        .update(vehicles)
+        .set({
+          brand,
+          licensePlate,
+          model,
+          year: year ? Number(year) : undefined,
+          capacityKg: capacityKg ? String(capacityKg) : undefined,
+          fuelType,
+          status,
+          image,
+          updatedAt: new Date(),
+        })
+        .where(eq(vehicles.id, fleetId))
+        .returning();
+      return NextResponse.json(
+        {
+          message: "Cập nhật thông tin phương tiện thành công",
+          updatedFleet,
+        },
+        { status: 200 },
+      );
+    } catch (error: any) {
+      console.error("Lỗi khi cập nhật phương tiện:", error);
+
+      if (error.code === "P2025") {
+        return NextResponse.json(
+          { error: "Không tìm thấy phương tiện với ID này" },
+          { status: 404 },
+        );
+      }
+
+      return NextResponse.json(
+        { error: "Cập nhật phương tiện thất bại" },
+        { status: 500 },
+      );
+    }
+  },
+
   /*
   Get Driver for manager */
   getDrivers: async (request: NextRequest) => {

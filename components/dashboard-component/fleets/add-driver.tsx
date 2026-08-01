@@ -55,7 +55,6 @@ const AddDrivers = ({
       setLoading(true);
       if (!vehicleId) return;
 
-      // 🔴 SỬA 1: Truyền vehicleId nếu service yêu cầu
       const resData = await fleetService.getDrivers();
 
       setDrivers(resData.data || []);
@@ -73,7 +72,6 @@ const AddDrivers = ({
     try {
       setSubmittingId(driverId ?? "unassign");
 
-      // 🔴 SỬA 2: Truyền driverId trực tiếp (cho phép null khi hủy phân công)
       const result = await fleetService.assignDriver({
         vehicleId,
         driverId: driverId ?? "",
@@ -97,12 +95,12 @@ const AddDrivers = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[480px] bg-[#18181b] border-zinc-800 text-zinc-100">
+      <DialogContent className="sm:max-w-120 border-zinc-800">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-zinc-100">
+          <DialogTitle className="text-xl font-bold">
             Phân công tài xế
           </DialogTitle>
-          <DialogDescription className="text-zinc-400">
+          <DialogDescription>
             Chọn tài xế phụ trách cho phương tiện này.
           </DialogDescription>
         </DialogHeader>
@@ -114,13 +112,13 @@ const AddDrivers = ({
             placeholder="Tìm theo tên hoặc email tài xế..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 bg-zinc-900 border-zinc-700 text-zinc-100 focus:border-orange-500 placeholder:text-zinc-500"
+            className="pl-9 border-zinc-700 text-zinc-100 focus:border-orange-500 placeholder:text-zinc-500"
           />
         </div>
 
         {/* Bỏ phân công nếu đang có driver */}
         {currentDriverId && (
-          <div className="flex justify-between items-center p-3 rounded-lg bg-red-950/30 border border-red-900/50 mb-2">
+          <div className="flex justify-between items-center p-3 rounded-lg border border-red-900/50 mb-2">
             <span className="text-sm text-red-300 font-medium">
               Bỏ phân công tài xế hiện tại
             </span>
@@ -143,7 +141,7 @@ const AddDrivers = ({
         )}
 
         {/* Danh sách Driver */}
-        <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+        <div className="max-h-150 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
           {loading ? (
             <div className="flex justify-center py-8 text-zinc-400">
               <Loader2 className="h-6 w-6 animate-spin mr-2" /> Đang tải danh
@@ -163,24 +161,24 @@ const AddDrivers = ({
                   key={driver.id}
                   className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
                     isSelected
-                      ? "bg-orange-500/10 border-orange-500/50"
-                      : "bg-zinc-900/50 border-zinc-800 hover:border-zinc-700"
+                      ? " border-orange-500/50"
+                      : "hover:border-zinc-700"
                   }`}
                 >
                   <div className="flex items-center space-x-3">
                     <Avatar className="h-9 w-9 border border-zinc-700">
                       <AvatarImage src={driver?.image || ""} />
-                      <AvatarFallback className="bg-zinc-800 text-zinc-300 font-medium">
+                      <AvatarFallback className="bg-zinc-800 font-medium">
                         {driver.name
                           ? driver.name.substring(0, 2).toUpperCase()
                           : "TX"}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-sm font-medium text-zinc-200">
+                      <p className="text-sm font-medium">
                         {driver.name || "Tài xế chưa đặt tên"}
                       </p>
-                      <p className="text-xs text-zinc-400">{driver.email}</p>
+                      <p className="text-xs text-zinc-500">{driver.email}</p>
                     </div>
                   </div>
 

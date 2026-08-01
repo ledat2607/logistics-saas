@@ -18,6 +18,7 @@ export interface VehicleSchema {
   ownerId?: string;
   createdAt?: string;
   updatedAt?: string;
+  image?: string | null;
 }
 
 export interface FleetVehicle extends VehicleSchema {
