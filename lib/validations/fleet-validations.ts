@@ -36,5 +36,45 @@ export const createVehicleSchema = z.object({
   fuelType: vehiclefuelSchema.default("DIESEL"),
   status: vehicleStatusSchema.default("AVAILABLE"),
 });
+export const maintenanceSchema = z
+  .object({
+    vehicleId: z.string().min(1, "Vui lòng chọn xe"),
+    vehicleLicensePlate: z.string().min(1, "Vui lòng nhập biển số xe"),
 
+    // Khi tạo mới nếu để trống sẽ fallback hoặc cho phép chuỗi rỗng/optional
+    description: z.string().min(1, "Vui lòng nhập mô tả bảo dưỡng"),
+
+    cost: z.coerce
+      .number({ message: "Chi phí phải là một số" })
+      .nonnegative("Chi phí không được là số âm")
+      .optional()
+      .nullable(),
+
+    // Tự động nhận ngày hiện tại nếu người dùng không truyền/không chọn
+    maintenanceDate: z.coerce
+      .date()
+      .refine((d) => d instanceof Date && !isNaN(d.getTime()), {
+        message: "Ngày bảo dưỡng không hợp lệ",
+      })
+      .default(() => new Date()),
+
+    nextDueDate: z.coerce
+      .date({ message: "Ngày hẹn không hợp lệ" })
+      .optional()
+      .nullable(),
+  })
+  .refine(
+    (data) => {
+      if (data.maintenanceDate && data.nextDueDate) {
+        return data.nextDueDate >= data.maintenanceDate;
+      }
+      return true;
+    },
+    {
+      message: "Ngày hẹn tiếp theo phải sau hoặc bằng ngày bảo dưỡng",
+      path: ["nextDueDate"],
+    },
+  );
+
+export type MaintenanceFormValues = z.infer<typeof maintenanceSchema>;
 export type CreateVehicleInput = z.infer<typeof createVehicleSchema>;

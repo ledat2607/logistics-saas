@@ -33,6 +33,13 @@ export const vehicleStatusEnum = pgEnum("vehicle_status", [
   "INACTIVE",
 ]);
 
+export const assignmentStatusEnum = pgEnum("assignment_status", [
+  "PENDING",
+  "ACTIVE",
+  "COMPLETED",
+  "CANCELLED",
+]);
+
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
   expiresAt: timestamp("expires_at").notNull(),
@@ -110,8 +117,9 @@ export const vehicleAssignments = pgTable("vehicle_assignments", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   assignedAt: timestamp("assigned_at").defaultNow().notNull(),
-  unassignedAt: timestamp("unassigned_at"), // Nối null nếu tài xế vẫn đang nhận xe
+  unassignedAt: timestamp("unassigned_at"),
   isCurrent: boolean("is_current").default(true).notNull(),
+  status: assignmentStatusEnum("status").default("PENDING").notNull(),
 });
 
 export const maintenanceLogs = pgTable("maintenance_logs", {
@@ -121,9 +129,9 @@ export const maintenanceLogs = pgTable("maintenance_logs", {
   vehicleId: text("vehicle_id")
     .notNull()
     .references(() => vehicles.id, { onDelete: "cascade" }),
-  description: text("description").notNull(), // Nội dung bảo dưỡng/thay dầu/thay lốp...
-  cost: numeric("cost"), // Chi phí bảo dưỡng
+  description: text("description").notNull(),
+  cost: numeric("cost"),
   maintenanceDate: timestamp("maintenance_date").notNull(),
-  nextDueDate: timestamp("next_due_date"), // Ngày hẹn bảo dưỡng tiếp theo
+  nextDueDate: timestamp("next_due_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

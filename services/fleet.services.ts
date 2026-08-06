@@ -49,7 +49,7 @@ export const fleetService = {
   },
 
   delete: async (id: string) => {
-    const response = await fetch(`${API_URL}/fleet/delete`, {
+    const response = await fetch(`${API_URL}/delete`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
