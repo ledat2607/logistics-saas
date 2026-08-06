@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { user, vehicles } from "@/db/schema";
+import { user, vehicleAssignments, vehicles } from "@/db/schema";
 import { createVehicleSchema } from "@/lib/validations/fleet-validations";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { aliasedTable, and, desc, eq } from "drizzle-orm";
-import { deleteImageFromFirebase } from "@/hooks/useUploadImage";
+import { deleteImageFromFirebaseServer } from "@/lib/firebase-server";
 
 export const fleetController = {
   /**
@@ -130,17 +130,31 @@ export const fleetController = {
             email: user.email,
             image: user.image,
           },
-          // ➕ BỔ SUNG: Lấy object driver
+
           driver: {
             id: driverUser.id,
             name: driverUser.name,
             email: driverUser.email,
             image: driverUser.image,
           },
+          assignment: {
+            id: vehicleAssignments.id,
+            status: vehicleAssignments.status,
+            assignedAt: vehicleAssignments.assignedAt,
+            unassignedAt: vehicleAssignments.unassignedAt,
+            isCurrent: vehicleAssignments.isCurrent,
+          },
         })
         .from(vehicles)
         .leftJoin(user, eq(vehicles.ownerId, user.id))
         .leftJoin(driverUser, eq(vehicles.driverId, driverUser.id))
+        .leftJoin(
+          vehicleAssignments,
+          and(
+            eq(vehicleAssignments.vehicleId, vehicles.id),
+            eq(vehicleAssignments.isCurrent, true),
+          ),
+        )
         .where(eq(vehicles.ownerId, session.user.id))
         .orderBy(desc(vehicles.createdAt));
 
@@ -160,7 +174,9 @@ export const fleetController = {
     { params }: { params?: Promise<{ id: string }> } = {},
   ) => {
     try {
-      const session = await auth.api.getSession({ headers: await headers() });
+      const session = await auth.api.getSession({
+        headers: request.headers,
+      });
 
       if (!session || !session.user) {
         return NextResponse.json(
@@ -206,6 +222,10 @@ export const fleetController = {
         );
       }
 
+      await db
+        .delete(vehicleAssignments)
+        .where(eq(vehicleAssignments.vehicleId, vehicleId));
+
       const [deletedVehicle] = await db
         .delete(vehicles)
         .where(
@@ -227,7 +247,7 @@ export const fleetController = {
       }
 
       if (deletedVehicle.image) {
-        await deleteImageFromFirebase(deletedVehicle.image);
+        await deleteImageFromFirebaseServer(deletedVehicle.image);
       }
 
       return NextResponse.json(
@@ -377,7 +397,6 @@ export const fleetController = {
         return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
       }
 
-      // Chặn Driver tự phân công
       const userRole = (session.user as any).role;
       if (userRole === "DRIVER") {
         return NextResponse.json(
@@ -387,7 +406,6 @@ export const fleetController = {
       }
 
       const body = await request.json();
-
       const { vehicleId, driverId } = body;
 
       if (!vehicleId) {
@@ -421,11 +439,38 @@ export const fleetController = {
         );
       }
 
+      await db
+        .update(vehicleAssignments)
+        .set({
+          isCurrent: false,
+          unassignedAt: new Date(),
+          status: "COMPLETED",
+        })
+        .where(
+          and(
+            eq(vehicleAssignments.vehicleId, vehicleId),
+            eq(vehicleAssignments.isCurrent, true),
+          ),
+        );
+
+      let newAssignment = null;
+      if (driverId) {
+        [newAssignment] = await db
+          .insert(vehicleAssignments)
+          .values({
+            vehicleId,
+            driverId,
+            isCurrent: true,
+            status: "PENDING",
+          })
+          .returning();
+      }
+
       return NextResponse.json({
         message: driverId
           ? "Phân công tài xế thành công!"
           : "Đã hủy phân công tài xế!",
-        data: updatedVehicle,
+        data: { updatedVehicle, newAssignment },
       });
     } catch (error: any) {
       console.error("Lỗi phân công tài xế:", error);

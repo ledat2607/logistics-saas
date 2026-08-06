@@ -10,7 +10,6 @@ import { useFleets } from "@/hooks/use-fleet";
 export default function FleetPage() {
   const { fleets, loading, error, refetch } = useFleets();
 
-  // Thống kê dữ liệu (Trường hợp fleets trả về cấu trúc có vehicle hoặc phẳng)
   const stats = {
     total: fleets.length,
     inTransit: fleets.filter(
@@ -25,7 +24,7 @@ export default function FleetPage() {
   };
 
   const [open, setOpen] = useState(false);
-
+  console.log(fleets)
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between gap-4 lg:gap-0">
@@ -49,7 +48,7 @@ export default function FleetPage() {
       ) : error ? (
         <div className="text-red-500 text-sm">Lỗi: {error}</div>
       ) : (
-        <FleetsContainer stats={stats} fleets={fleets} onSuccess={refetch}/>
+        <FleetsContainer stats={stats} fleets={fleets} onSuccess={refetch} />
       )}
 
       <CreateFleetDialog open={open} setOpen={setOpen} onSuccess={refetch} />

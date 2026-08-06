@@ -42,8 +42,6 @@ const AddDrivers = ({
   const [loading, setLoading] = useState(false);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
 
-  console.log(currentDriverId);
-
   useEffect(() => {
     if (open) {
       fetchDrivers();

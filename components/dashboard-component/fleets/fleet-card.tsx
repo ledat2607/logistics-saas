@@ -33,6 +33,12 @@ import { toast } from "sonner";
 import { fleetService } from "@/services/fleet.services";
 import AddDrivers from "./add-driver";
 import CreateFleetDialog from "./create-fleet-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import CreateMaintainceDialog from "./create-maintaince-dialog";
 
 interface FleetItem {
   vehicle: FleetVehicle;
@@ -47,6 +53,13 @@ interface FleetItem {
     name: string;
     email: string;
     image?: string;
+  } | null;
+  assignment?: {
+    id: string;
+    status: string;
+    assignedAt: string | null;
+    unassignedAt: string | null;
+    isCurrent: boolean;
   } | null;
 }
 
@@ -98,6 +111,7 @@ const FleetsContainer = ({
 
   const [open, setOpen] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+  const [openMaintaince, setOpenMaintaince] = useState(false);
 
   useEffect(() => {
     if (fleets && fleets.length > 0) {
@@ -131,12 +145,10 @@ const FleetsContainer = ({
       setLoading(false);
     }
   };
-
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8 space-y-6">
-          {/* Thống kê Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -212,7 +224,7 @@ const FleetsContainer = ({
                 <TableBody>
                   {fleets.map((item) => {
                     const vehicle = item.vehicle;
-                    const driver = item.driver; // 🔴 Lấy driver đúng chỗ
+                    const driver = item.driver;
 
                     return (
                       <TableRow
@@ -285,7 +297,26 @@ const FleetsContainer = ({
                     {selectedVehicle?.licensePlate || "N/A"}
                   </CardTitle>
                 </div>
-                {selectedVehicle && renderStatusBadge(selectedVehicle.status)}
+                <div className="flex items-center gap-2">
+                  {selectedVehicle && renderStatusBadge(selectedVehicle.status)}
+                  {selectedVehicle?.status === "MAINTENANCE" && (
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <Button
+                            variant="outline"
+                            onClick={() => setOpenMaintaince(true)}
+                          >
+                            <Pencil />
+                          </Button>
+                        }
+                      />
+                      <TooltipContent>
+                        <p>Thêm mới dữ liệu bảo dưỡng</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
               </CardHeader>
 
               <CardContent className="space-y-4 pt-4 text-sm">
@@ -338,45 +369,102 @@ const FleetsContainer = ({
                     Tài xế phụ trách
                   </span>
                   {selectedDriver ? (
-                    <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/40 mt-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage
-                            src={selectedDriver.image || undefined}
-                            alt={selectedDriver.name || "Driver"}
-                          />
-                          <AvatarFallback>
-                            {selectedDriver.name
-                              ? selectedDriver.name.charAt(0).toUpperCase()
-                              : "TX"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-xs font-semibold">
-                            {selectedDriver.name || "Tài xế"}
-                          </p>
-                          <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                            <Mail className="h-3 w-3" />
-                            {selectedDriver.email}
-                          </p>
+                    <div className="relative group overflow-hidden rounded-xl border border-border/60 bg-linear-to-r from-background via-muted/30 to-background p-3.5 shadow-sm transition-all duration-200 hover:border-emerald-500/40 hover:shadow-md mt-4">
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500 rounded-l-full" />
+
+                      <div className="flex items-center justify-between gap-3 pl-1.5">
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="relative shrink-0">
+                            <Avatar className="h-10 w-10 ring-2 ring-emerald-500/20 ring-offset-2 ring-offset-background transition-transform duration-200 group-hover:scale-105">
+                              <AvatarImage
+                                src={selectedDriver.image || undefined}
+                                alt={selectedDriver.name || "Driver"}
+                                className="object-cover"
+                              />
+                              <AvatarFallback className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium text-xs">
+                                {selectedDriver.name
+                                  ? selectedDriver.name.charAt(0).toUpperCase()
+                                  : "TX"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-background" />
+                          </div>
+
+                          <div className="flex flex-col min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-semibold truncate text-foreground/90">
+                                {selectedDriver.name || "Tài xế"}
+                              </p>
+                              {(() => {
+                                const status =
+                                  selectedFleet?.assignment?.status || "ACTIVE";
+                                const statusConfig: Record<
+                                  string,
+                                  { label: string; style: string }
+                                > = {
+                                  ACTIVE: {
+                                    label: "Đang giao xe",
+                                    style:
+                                      "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+                                  },
+                                  COMPLETED: {
+                                    label: "Đã xong",
+                                    style:
+                                      "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+                                  },
+                                  CANCELLED: {
+                                    label: "Đã hủy",
+                                    style:
+                                      "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
+                                  },
+                                };
+
+                                const current = statusConfig[status] || {
+                                  label: status,
+                                  style:
+                                    "bg-muted text-muted-foreground border-border",
+                                };
+
+                                return (
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-[10px] px-2 py-0 h-4 font-normal rounded-full border ${current.style}`}
+                                  >
+                                    {current.label}
+                                  </Badge>
+                                );
+                              })()}
+                            </div>
+
+                            <p className="text-xs text-muted-foreground/80 flex items-center gap-1.5 mt-0.5 truncate">
+                              <Mail className="h-3 w-3 shrink-0 text-muted-foreground/60" />
+                              <span className="truncate">
+                                {selectedDriver.email}
+                              </span>
+                            </p>
+                          </div>
                         </div>
+
+                        <Button
+                          onClick={() => setOpen(true)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-3 text-xs font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20 rounded-lg transition-colors shrink-0"
+                        >
+                          Đổi tài xế
+                        </Button>
                       </div>
-                      <Button
-                        onClick={() => setOpen(true)}
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 text-xs text-orange-500 hover:text-orange-400"
-                      >
-                        Đổi
-                      </Button>
                     </div>
                   ) : (
                     <Button
                       onClick={() => setOpen(true)}
                       variant="outline"
-                      className="w-full border-dashed text-xs h-9"
+                      className="w-full border-dashed border-2 border-muted-foreground/25 hover:border-emerald-500/50 hover:bg-emerald-500/5 hover:text-emerald-600 dark:hover:text-emerald-400 text-xs font-medium h-11 rounded-xl transition-all duration-200 gap-2 group mt-4 shadow-none"
                     >
-                      + Phân công tài xế
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted group-hover:bg-emerald-500/20 transition-colors">
+                        +
+                      </span>
+                      Phân công tài xế
                     </Button>
                   )}
                 </div>
@@ -436,6 +524,11 @@ const FleetsContainer = ({
         setOpen={setOpenEdit}
         onSuccess={onSuccess}
         data={selectedVehicle || null}
+      />
+      <CreateMaintainceDialog
+        open={openMaintaince}
+        setOpen={setOpenMaintaince}
+        vehicle={selectedVehicle}
       />
     </>
   );
