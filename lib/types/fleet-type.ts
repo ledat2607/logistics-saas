@@ -30,5 +30,27 @@ export interface FleetVehicle extends VehicleSchema {
   } | null;
   currentLocation?: string;
   lastMaintenanceDate?: string;
+  maintenance?: MaintenanceLog | null;
 }
 
+export interface MaintenanceLog {
+  id: string;
+  vehicleId: string;
+  vehicleLicensePlate?: string | null;
+  description: string;
+  cost: number | string | null; 
+  garageLocation?: string | null;
+  maintenanceDate: Date;
+  nextDueDate?: Date | null;
+  createdAt: Date;
+}
+
+export interface CreateMaintenanceInput {
+  vehicleId: string;
+  vehicleLicensePlate?: string | null;
+  description: string;
+  cost?: number;
+  garageLocation?: string | null;
+  maintenanceDate?: Date | string;
+  nextDueDate?: Date | string | null;
+}

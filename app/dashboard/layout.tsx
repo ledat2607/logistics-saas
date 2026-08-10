@@ -25,7 +25,9 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen w-full overflow-hidden">
       <aside
-        className={`${isCollapsed ? "w-20 lg:w-64" : "lg:w-64 w-20"} transition-all duration-300 ease-in-out border-r h-full shrink-0 z-20`}
+        className={`${
+          isCollapsed ? "w-20" : "w-64"
+        } transition-all duration-300 ease-in-out border-r h-full shrink-0 z-20`}
       >
         <SidebarDashboard
           isCollapsed={isCollapsed}

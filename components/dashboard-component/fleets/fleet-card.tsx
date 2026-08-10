@@ -61,6 +61,14 @@ interface FleetItem {
     unassignedAt: string | null;
     isCurrent: boolean;
   } | null;
+  maintenance?: {
+    id: string;
+    description: string;
+    cost: number;
+    garageLocation: string;
+    maintenanceDate: string;
+    nextDueDate: string;
+  } | null;
 }
 
 interface FleetsContainerProps {
@@ -131,6 +139,7 @@ const FleetsContainer = ({
   const selectedVehicle = selectedFleet?.vehicle;
   const selectedOwner = selectedFleet?.owner;
   const selectedDriver = selectedFleet?.driver;
+  const maintainceLog = selectedFleet?.maintenance;
 
   const handleRemoveVehicle = async (id: string) => {
     try {
@@ -145,6 +154,9 @@ const FleetsContainer = ({
       setLoading(false);
     }
   };
+
+  console.log(selectedFleet);
+
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -349,8 +361,11 @@ const FleetsContainer = ({
                       Bảo dưỡng gần nhất:
                     </span>
                     <span className="font-medium">
-                      {selectedVehicle?.lastMaintenanceDate ||
-                        "Chưa có dữ liệu"}
+                      {maintainceLog?.maintenanceDate
+                        ? new Date(
+                            maintainceLog.maintenanceDate,
+                          ).toLocaleDateString("vi-VN")
+                        : "Chưa có dữ liệu"}
                     </span>
                   </div>
                 </div>
@@ -360,7 +375,7 @@ const FleetsContainer = ({
                     <MapPin className="h-3.5 w-3.5" /> Vị trí hiện tại
                   </span>
                   <p className="text-xs font-medium mt-1">
-                    {selectedVehicle?.currentLocation || "Chưa cập nhật vị trí"}
+                    {maintainceLog?.garageLocation || "Chưa cập nhật vị trí"}
                   </p>
                 </div>
 

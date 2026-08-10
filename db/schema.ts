@@ -131,6 +131,7 @@ export const maintenanceLogs = pgTable("maintenance_logs", {
     .references(() => vehicles.id, { onDelete: "cascade" }),
   description: text("description").notNull(),
   cost: numeric("cost"),
+  garageLocation: text("garage_location"),
   maintenanceDate: timestamp("maintenance_date").notNull(),
   nextDueDate: timestamp("next_due_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

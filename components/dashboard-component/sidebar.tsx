@@ -90,7 +90,7 @@ export default function SidebarDashboard({
                   } ${isCollapsed ? "justify-center" : ""}`}
                 >
                   <Icon size={20} className="shrink-0" />
-                  {!isCollapsed && <span className="hidden lg:block">{item.name}</span>}
+                  {!isCollapsed && <span>{item.name}</span>}
                 </button>
               </Link>
             );
@@ -104,7 +104,9 @@ export default function SidebarDashboard({
             ${isCollapsed ? "p-3" : "py-3 px-4"}`}
         >
           <Plus size={18} className="shrink-0" />
-          {!isCollapsed && <span className="hidden lg:block">New Shipment</span>}
+          {!isCollapsed && (
+            <span className="hidden lg:block">New Shipment</span>
+          )}
         </button>
 
         <div className="border-t border-slate-800 pt-4 space-y-1">
@@ -117,7 +119,9 @@ export default function SidebarDashboard({
                   ${isCollapsed ? "justify-center" : ""}`}
               >
                 <Icon size={18} className="shrink-0" />
-                {!isCollapsed && <span className="hidden lg:block">{item.name}</span>}
+                {!isCollapsed && (
+                  <span className="hidden lg:block">{item.name}</span>
+                )}
               </button>
             );
           })}
