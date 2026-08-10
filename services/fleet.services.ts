@@ -1,6 +1,6 @@
 import { VehicleSchema } from "@/lib/types/fleet-type";
 
-const API_URL = "/api/fleet";
+const API_URL = "/api/fleet/routes";
 
 export const fleetService = {
   /**

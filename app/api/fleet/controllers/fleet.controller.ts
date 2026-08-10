@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { user, vehicleAssignments, vehicles } from "@/db/schema";
+import { maintenanceLogs, user, vehicleAssignments, vehicles } from "@/db/schema";
 import { createVehicleSchema } from "@/lib/validations/fleet-validations";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -144,6 +144,14 @@ export const fleetController = {
             unassignedAt: vehicleAssignments.unassignedAt,
             isCurrent: vehicleAssignments.isCurrent,
           },
+          maintenance: {
+            id: maintenanceLogs.id,
+            description: maintenanceLogs.description,
+            cost: maintenanceLogs.cost,
+            garageLocation: maintenanceLogs.garageLocation,
+            maintenanceDate: maintenanceLogs.maintenanceDate,
+            nextDueDate: maintenanceLogs.nextDueDate,
+          },
         })
         .from(vehicles)
         .leftJoin(user, eq(vehicles.ownerId, user.id))
@@ -155,6 +163,7 @@ export const fleetController = {
             eq(vehicleAssignments.isCurrent, true),
           ),
         )
+        .leftJoin(maintenanceLogs, eq(maintenanceLogs.vehicleId, vehicles.id))
         .where(eq(vehicles.ownerId, session.user.id))
         .orderBy(desc(vehicles.createdAt));
 

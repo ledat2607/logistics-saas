@@ -28,8 +28,11 @@ import { Delete, Loader2, Pencil, Rocket, Send } from "lucide-react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
-import { useState } from "react";
-import { deleteImageFromFirebase, useUploadImage } from "@/hooks/useUploadImage";
+import { useEffect, useState } from "react";
+import {
+  deleteImageFromFirebase,
+  useUploadImage,
+} from "@/hooks/useUploadImage";
 
 interface CreateFleetDialogProps {
   open: boolean;
@@ -68,27 +71,46 @@ const CreateFleetDialog = ({
   });
   const availableModels = getModelsByBrandName(selectedBrand);
 
+  useEffect(() => {
+    if (open) {
+      if (data) {
+        form.reset({
+          brand: data.brand || "",
+          model: data.model || "",
+          year: data.year || "",
+          licensePlate: data.licensePlate || "",
+          capacityKg: data.capacityKg || "",
+          fuelType: data.fuelType || "",
+          status: data.status || "",
+          image: data.image || "",
+        });
+      } else {
+        form.reset();
+      }
+    }
+  }, [open, data, form]);
+
   async function onSubmit(formData: z.infer<typeof createVehicleSchema>) {
     try {
       setLoading(true);
 
-      const currentImage = form.getValues("image");
-      let imageUrl = typeof currentImage === "string" ? currentImage : "";
-
-      if (currentImage instanceof File) {
-        console.log("Đang upload ảnh lên Firebase...", currentImage);
-        imageUrl = await uploadImage(currentImage, "vehicles");
-        console.log("Upload thành công, URL:", imageUrl);
-      }
+      const oldImageUrl = data?.image;
 
       const payload = {
         ...formData,
-        image: imageUrl,
+        image: form.getValues("image") || "",
       };
 
       let result;
       if (data?.id) {
         result = await fleetService.update(data.id, payload as any);
+
+        if (oldImageUrl && payload.image !== oldImageUrl) {
+          deleteImageFromFirebase(oldImageUrl).catch((err) =>
+            console.error("Lỗi khi xóa ảnh cũ trên Firebase:", err),
+          );
+        }
+
         toast.success(result?.message || "Cập nhật thông tin xe thành công");
       } else {
         result = await fleetService.create(payload as any);
@@ -191,15 +213,13 @@ const CreateFleetDialog = ({
                             const file = e.target.files?.[0];
                             if (file) {
                               try {
+                                // Chỉ tải ảnh mới lên và lưu URL vào Form State
                                 const newUrl = await uploadImage(
                                   file,
                                   "vehicles",
                                 );
 
-                                if (data?.image && data.image !== newUrl) {
-                                  await deleteImageFromFirebase(data.image);
-                                }
-
+                                // Đã BỎ dòng deleteImageFromFirebase ở đây
                                 onChange(newUrl);
                                 toast.success("Tải ảnh mới thành công!");
                               } catch (err) {
