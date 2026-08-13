@@ -25,4 +25,38 @@ export const maintenanceService = {
     }
     return resData;
   },
+  /*Delete maintaince */
+  deleteMaintaince: async (id: string) => {
+    if (!id) {
+      throw new Error("ID bản ghi không hợp lệ.");
+    }
+
+    // Gửi ID trực tiếp qua Query Parameter (?id=...)
+    const response = await fetch(`${API_URL}/delete-maintaince?id=${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    let resData;
+    try {
+      resData = await response.json();
+    } catch (e) {
+      resData = null;
+    }
+
+    if (!response.ok) {
+      const errorMessage =
+        typeof resData?.error === "string"
+          ? resData.error
+          : resData?.message ||
+            `Lỗi ${response.status}: Đã xảy ra lỗi khi xóa bản ghi`;
+
+      throw new Error(errorMessage);
+    }
+
+    return resData;
+  },
 };

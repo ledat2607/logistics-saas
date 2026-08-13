@@ -10,6 +10,7 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  Menu,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -79,48 +80,54 @@ export default function SidebarDashboard({
             const Icon = item.icon;
             const active = pathname === item.href;
             return (
-              <Link href={item.href} key={index}>
-                <button
-                  key={index}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-all
-                  ${
-                    active
-                      ? "bg-[#FF7A30] text-white"
-                      : "hover:bg-slate-800/50 hover:text-slate-200"
-                  } ${isCollapsed ? "justify-center" : ""}`}
-                >
-                  <Icon size={20} className="shrink-0" />
-                  {!isCollapsed && <span>{item.name}</span>}
-                </button>
+              <Link
+                href={item.href}
+                key={index}
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg font-medium text-sm transition-all ${
+                  active
+                    ? "bg-[#FF7A30] text-white"
+                    : "hover:bg-slate-800/50 hover:text-slate-200"
+                } ${isCollapsed ? "justify-center" : ""}`}
+              >
+                <Icon size={20} className="shrink-0" />
+                {!isCollapsed && (
+                  <span className="hidden md:inline-block whitespace-nowrap overflow-hidden">
+                    {item.name}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
+        {/* BUTTON NEW SHIPMENT */}
         <button
-          className={`w-full bg-[#FF7A30] text-white font-medium text-sm rounded-lg flex items-center justify-center gap-2 hover:bg-[#e06626] transition-colors
-            ${isCollapsed ? "p-3" : "py-3 px-4"}`}
+          className={`w-full bg-[#FF7A30] text-white font-medium text-sm rounded-lg flex items-center gap-2 hover:bg-[#e06626] transition-colors ${
+            isCollapsed ? "justify-center p-3" : "py-3 px-4"
+          }`}
         >
           <Plus size={18} className="shrink-0" />
           {!isCollapsed && (
-            <span className="hidden lg:block">New Shipment</span>
+            <span className="truncate min-w-0">New Shipment</span>
           )}
         </button>
 
-        <div className="border-t border-slate-800 pt-4 space-y-1">
+        {/* BOTTOM ITEMS */}
+        <div className="border-t border-slate-800 pt-3 space-y-1">
           {bottomItems.map((item, index) => {
             const Icon = item.icon;
             return (
               <button
                 key={index}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800/50 hover:text-slate-200 transition-all
-                  ${isCollapsed ? "justify-center" : ""}`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800/50 hover:text-slate-200 transition-all ${
+                  isCollapsed ? "justify-center" : ""
+                }`}
               >
                 <Icon size={18} className="shrink-0" />
                 {!isCollapsed && (
-                  <span className="hidden lg:block">{item.name}</span>
+                  <span className="truncate min-w-0">{item.name}</span>
                 )}
               </button>
             );
@@ -128,11 +135,12 @@ export default function SidebarDashboard({
         </div>
       </div>
 
+      {/* NÚT TOGGLE (Chỉ hiển thị từ màn md trở lên) */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute top-5 -right-3 bg-[#FF7A30] text-white rounded-full p-1 border-2 border-[#031525] hover:scale-105 transition-transform hidden md:block"
+        className="hidden md:flex absolute top-5 -right-3 bg-[#FF7A30] text-white rounded-full p-1 border-2 border-[#031525] hover:scale-110 transition-transform z-30 items-center justify-center"
       >
-        {isCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+        {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
       </button>
     </div>
   );

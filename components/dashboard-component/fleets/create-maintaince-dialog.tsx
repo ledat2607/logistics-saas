@@ -20,7 +20,13 @@ import z from "zod";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, LocationEditIcon, RefreshCw, Send } from "lucide-react";
+import {
+  CalendarIcon,
+  Loader2,
+  LocationEditIcon,
+  RefreshCw,
+  Send,
+} from "lucide-react";
 import { formatCurrency } from "@/lib/format-currency";
 import {
   Popover,
@@ -92,8 +98,7 @@ const CreateMaintainceDialog = ({
       const result = await maintenanceService.createMaintenanceRecord(data);
 
       toast.success(result.message || "Tạo bản ghi bảo dưỡng thành công!");
-
-      // Reset form về trạng thái ban đầu
+      setOpen(!open);
       form.reset({
         vehicleId: "",
         vehicleLicensePlate: "",
@@ -349,7 +354,15 @@ const CreateMaintainceDialog = ({
           </FieldGroup>
           <div className="space-x-5">
             <Button type="submit">
-              <Send /> Gửi
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                </>
+              ) : (
+                <>
+                  <Send /> Gửi
+                </>
+              )}
             </Button>
             <Button
               variant="destructive"

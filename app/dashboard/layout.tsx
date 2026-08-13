@@ -12,7 +12,12 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { data: session, isPending } = authClient.useSession();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
 
   if (isPending)
     return (
@@ -24,19 +29,27 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
+      {!isCollapsed && (
+        <div
+          onClick={() => setIsCollapsed(true)}
+          className="fixed inset-0 bg-black/60 z-40 md:hidden transition-opacity"
+        />
+      )}
+
       <aside
-        className={`${
-          isCollapsed ? "w-20" : "w-64"
-        } transition-all duration-300 ease-in-out border-r h-full shrink-0 z-20`}
+        className={`h-full bg-[#031525] border-r z-50 transition-all duration-300 ease-in-out shrink-0 fixed top-0 left-0 ${isCollapsed ? "-translate-x-full md:translate-x-0 w-20" : "translate-x-0 lg:w-64 w-20"} md:static md:z-20 ${isCollapsed ? "md:w-20" : "md:w-64"}
+  `}
       >
         <SidebarDashboard
           isCollapsed={isCollapsed}
           setIsCollapsed={setIsCollapsed}
         />
       </aside>
-
       <div className="flex flex-col flex-1 h-full overflow-hidden">
-        <HeaderDashboard />
+        <HeaderDashboard
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+        />
 
         <main className="flex-1 overflow-y-auto bg-background">{children}</main>
       </div>
