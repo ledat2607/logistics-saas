@@ -84,6 +84,12 @@ interface FleetsContainerProps {
 
 const renderStatusBadge = (status: FleetVehicle["status"]) => {
   switch (status) {
+    case "IN_USE":
+      return (
+        <Badge className="bg-green-500/15 text-green-500 hover:bg-green-500/20 border-green-500/30">
+          Đang sử dụng
+        </Badge>
+      );
     case "IN_TRANSIT":
       return (
         <Badge className="bg-blue-500/15 text-blue-500 hover:bg-blue-500/20 border-blue-500/30">
@@ -154,8 +160,6 @@ const FleetsContainer = ({
       setLoading(false);
     }
   };
-
-  console.log(selectedFleet);
 
   return (
     <>

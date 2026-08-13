@@ -31,6 +31,7 @@ export const vehicleStatusEnum = pgEnum("vehicle_status", [
   "IN_TRANSIT",
   "MAINTENANCE",
   "INACTIVE",
+  "IN_USE",
 ]);
 
 export const assignmentStatusEnum = pgEnum("assignment_status", [
@@ -38,6 +39,19 @@ export const assignmentStatusEnum = pgEnum("assignment_status", [
   "ACTIVE",
   "COMPLETED",
   "CANCELLED",
+]);
+
+export const tripStatusEnum = pgEnum("trip_status", [
+  "PLANNED",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELLED",
+  "DELAYED",
+]);
+export const maintainceEnum = pgEnum("maintaince_status", [
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELED",
 ]);
 
 export const session = pgTable("session", {
@@ -131,8 +145,60 @@ export const maintenanceLogs = pgTable("maintenance_logs", {
     .references(() => vehicles.id, { onDelete: "cascade" }),
   description: text("description").notNull(),
   cost: numeric("cost"),
+  status: maintainceEnum("status").default("IN_PROGRESS"),
   garageLocation: text("garage_location"),
   maintenanceDate: timestamp("maintenance_date").notNull(),
   nextDueDate: timestamp("next_due_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const trips = pgTable("trips", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+
+  tripCode: text("trip_code").unique(),
+
+  vehicleId: text("vehicle_id")
+    .notNull()
+    .references(() => vehicles.id, { onDelete: "cascade" }),
+  driverId: text("driver_id").references(() => user.id, {
+    onDelete: "set null",
+  }),
+
+  startLocation: text("start_location").notNull(),
+  endLocation: text("end_location").notNull(),
+
+  estimatedStartTime: timestamp("estimated_start_time").notNull(),
+  estimatedEndTime: timestamp("estimated_end_time"),
+
+  actualStartTime: timestamp("actual_start_time"),
+  actualEndTime: timestamp("actual_end_time"),
+
+  distanceKm: numeric("distance_km"),
+  fuelConsumedLiters: numeric("fuel_consumed_liters"),
+  tollCost: numeric("toll_cost"),
+
+  status: tripStatusEnum("status").default("PLANNED").notNull(),
+  notes: text("notes"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const tripLocations = pgTable("trip_locations", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+
+  tripId: text("trip_id")
+    .notNull()
+    .references(() => trips.id, { onDelete: "cascade" }),
+
+  latitude: numeric("latitude").notNull(),
+  longitude: numeric("longitude").notNull(),
+
+  address: text("address"),
+  speedKmh: numeric("speed_kmh"),
+  recordedAt: timestamp("recorded_at").defaultNow().notNull(),
 });
