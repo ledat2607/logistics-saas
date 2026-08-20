@@ -1,3 +1,4 @@
+import { MaintenanceSchedule } from "@/components/dashboard-component/schedule/maintaince-update";
 import { CreateMaintenanceInput } from "@/lib/types/fleet-type";
 
 const API_URL = "/api/maintaince/routes";
@@ -59,4 +60,34 @@ export const maintenanceService = {
 
     return resData;
   },
+
+   updateMaintaince: async (id: string, data: MaintenanceSchedule) => {
+      const response = await fetch(`${API_URL}/update-maintaince/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+  
+      let resData;
+      try {
+        resData = await response.json();
+      } catch (e) {
+        resData = null;
+      }
+  
+      if (!response.ok) {
+        const errorMessage =
+          typeof resData?.error === "string"
+            ? resData.error
+            : resData?.message ||
+              `Lỗi ${response.status}: Đã xảy ra lỗi khi cập nhật phương tiện`;
+  
+        throw new Error(errorMessage);
+      }
+  
+      return resData;
+    },
 };

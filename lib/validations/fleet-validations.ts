@@ -80,5 +80,85 @@ export const maintenanceSchema = z
     },
   );
 
+export const maintenanceStatusEnum = z.enum([
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELED",
+]);
+
+export const updateMaintenanceSchema = z
+  .object({
+    status: maintenanceStatusEnum.optional(),
+    vehicleId: z.string().optional(),
+    description: z.string().optional(),
+    garageLocation: z.string().nullable().optional(),
+
+    // Chấp nhận cost dạng number, string (như "2.200.000") hoặc null
+    cost: z.any().optional(),
+
+    // Chấp nhận cả maintenanceDate lẫn startDate từ Form
+    maintenanceDate: z.coerce.date().optional(),
+    startDate: z.coerce.date().optional(),
+
+    // Chấp nhận cả nextDueDate lẫn endDate từ Form
+    nextDueDate: z.coerce.date().nullable().optional(),
+    endDate: z.coerce.date().nullable().optional(),
+
+    // Đọc thêm object details lồng nhau nếu Client gửi dạng formData.details
+    details: z
+      .object({
+        description: z.string().optional(),
+        cost: z.any().optional(),
+        garageLocation: z.string().optional(),
+        startDate: z.coerce.date().optional(),
+        endDate: z.coerce.date().nullable().optional(),
+      })
+      .optional(),
+  })
+  .transform((data) => {
+    const description = data.description ?? data.details?.description;
+
+    const garageLocation = data.garageLocation ?? data.details?.garageLocation;
+
+    const rawMaintenanceDate =
+      data.maintenanceDate ?? data.startDate ?? data.details?.startDate;
+    const maintenanceDate = rawMaintenanceDate
+      ? new Date(rawMaintenanceDate)
+      : undefined;
+
+    const rawNextDueDate =
+      data.nextDueDate ?? data.endDate ?? data.details?.endDate;
+    const nextDueDate =
+      rawNextDueDate !== undefined
+        ? rawNextDueDate
+          ? new Date(rawNextDueDate)
+          : null
+        : undefined;
+
+    let rawCost = data.cost ?? data.details?.cost;
+    let cost: string | null | undefined = undefined;
+
+    if (rawCost !== undefined && rawCost !== null && rawCost !== "") {
+      if (typeof rawCost === "string") {
+        const cleaned = rawCost.replace(/\D/g, "");
+        cost = cleaned ? cleaned : null;
+      } else if (typeof rawCost === "number") {
+        cost = String(rawCost);
+      }
+    } else if (rawCost === null || rawCost === "") {
+      cost = null;
+    }
+
+    return {
+      ...(data.status !== undefined && { status: data.status }),
+      ...(data.vehicleId !== undefined && { vehicleId: data.vehicleId }),
+      ...(description !== undefined && { description }),
+      ...(garageLocation !== undefined && { garageLocation }),
+      ...(maintenanceDate !== undefined && { maintenanceDate }),
+      ...(nextDueDate !== undefined && { nextDueDate }),
+      ...(cost !== undefined && { cost }),
+    };
+  });
+export type UpdateMaintenanceInput = z.infer<typeof updateMaintenanceSchema>;
 export type MaintenanceFormValues = z.infer<typeof maintenanceSchema>;
 export type CreateVehicleInput = z.infer<typeof createVehicleSchema>;

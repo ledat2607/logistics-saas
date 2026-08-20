@@ -39,7 +39,7 @@ const SchedulePage = () => {
         Lỗi kết nối: {error}
       </div>
     );
-
+  console.log(maintenanceSchedules);
   return (
     <div className="p-6 max-w-[1600px] mx-auto space-y-8">
       {/* Page Header */}
@@ -160,7 +160,6 @@ const SchedulePage = () => {
                 <MaintenanceCard
                   key={item.id}
                   data={item}
-                  onEdit={(id) => console.log("Edit", id)}
                   onSuccess={refetch}
                 />
               ))}
