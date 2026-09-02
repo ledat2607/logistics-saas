@@ -25,6 +25,7 @@ import {
   Eye,
   EyeOff,
   Key,
+  Loader,
   Mail,
   ShieldCheck,
   User,
@@ -43,6 +44,7 @@ export default function LoginPage() {
   const [view, setView] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -54,28 +56,32 @@ export default function LoginPage() {
 
   const handleSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
+      setLoading(!loading);
       const { data, error } = await authClient.signIn.email({
         email: values.email,
         password: values.password,
       });
 
       if (error) {
-        console.error("Lỗi đăng nhập:", error.message);
-        toast.error("Đăng nhập thất bại!");
+        console.error("Lỗi đăng nhập chi tiết:", error);
+
+        const errorMessage =
+          error.message || "Email hoặc mật khẩu không chính xác!";
+        toast.error(errorMessage);
+        setLoading(false);
         return;
       }
 
       toast.success("Đăng nhập thành công!");
+      setLoading(false);
 
-      router.refresh();
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 2000);
+      router.push("/dashboard");
     } catch (err) {
       console.error("Lỗi hệ thống:", err);
       toast.error("Đã xảy ra lỗi hệ thống!");
     }
   };
+
   const handleGoogleSignIn = async () => {
     setLoadingGoogle(true);
     await authClient.signIn.social({
@@ -180,7 +186,13 @@ export default function LoginPage() {
           </div>
 
           <Button className="w-full py-6 mt-6" type="submit">
-            Sign in to Dashboard <ArrowRight />
+            {loading ? (
+              <Loader className="size-5 animate-spin" />
+            ) : (
+              <>
+                Sign in to Dashboard <ArrowRight />
+              </>
+            )}
           </Button>
         </form>
 

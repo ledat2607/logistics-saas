@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth"; // Import instance auth ở Server bạn tạo ở Bước 6 bài trước
+import { limitRequest } from "./lib/rate-limit";
 
 export async function middleware(request: NextRequest) {
-  // 1. Lấy thông tin session từ request (Better-Auth tự động đọc từ cookie)
   const session = await auth.api.getSession({
     headers: request.headers,
   });
@@ -17,15 +17,27 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Trường hợp: Đã đăng nhập rồi mà vẫn cố vào lại trang signin/signup
   if (isAuthRoute && session) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  if (request.nextUrl.pathname.startsWith("/api")) {
+    const ip = request.headers.get("x-forwarded-for") ?? "127.0.0.1";
+    const { success } = await limitRequest.limit(ip);
+
+    if (!success) {
+      return NextResponse.json(
+        {
+          message: "Quá nhiều yêu cầu !!!",
+        },
+        { status: 429 },
+      );
+    }
   }
 
   return NextResponse.next();
 }
 
-// Chỉ chạy middleware trên các đường dẫn này để tối ưu hiệu năng
 export const config = {
-  matcher: ["/dashboard/:path*", "/signin", "/signup"],
+  matcher: ["/dashboard/:path*", "/signin", "/signup", "/api/:path*"],
 };

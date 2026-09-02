@@ -1,10 +1,12 @@
 import { authClient } from "@/lib/auth-clients";
 import { useRouter } from "next/navigation";
 import { Input } from "../ui/input";
-import { LogOut, Search, Menu } from "lucide-react"; // Import thêm Menu icon
+import { LogOut, Search, Menu, Loader } from "lucide-react"; // Import thêm Menu icon
 import { Badge } from "../ui/badge";
 import { ModeToggle } from "../mode-toggle";
 import { Button } from "../ui/button";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface HeaderDashboardProps {
   isCollapsed: boolean;
@@ -15,22 +17,29 @@ const HeaderDashboard = ({
   isCollapsed,
   setIsCollapsed,
 }: HeaderDashboardProps) => {
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session } = authClient.useSession();
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const handleSignOut = async () => {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => router.push("/login"),
-      },
-    });
+    try {
+      setLoading(!loading);
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => router.push("/login"),
+        },
+      });
+      setLoading(true);
+      toast.success("Đăng xuất thành công");
+    } catch (error: any) {
+      console.error("Lỗi hệ thống:", error);
+      toast.error("Đã xảy ra lỗi hệ thống!");
+    }
   };
 
   return (
     <header className="h-16 border-b dark:bg-background/20 flex items-center justify-between px-4 md:px-6 shrink-0">
-      {/* Khối bên trái: Nút Hamburger trên Mobile & Thanh Tìm Kiếm */}
       <div className="flex items-center gap-3">
-        {/* Nút Hamburger Icon - Bật/Tắt Sidebar (chỉ hiển thị trên Mobile) */}
         <Button
           variant="outline"
           size="icon"
@@ -42,7 +51,7 @@ const HeaderDashboard = ({
         </Button>
 
         {/* Thanh tìm kiếm */}
-        <div className="flex items-center relative min-w-[180px] sm:min-w-[260px]">
+        <div className="flex items-center relative min-w-45 sm:min-w-65">
           <Search className="w-4 h-4 absolute top-2.5 left-3 text-slate-400" />
           <Input
             type="text"
@@ -57,17 +66,24 @@ const HeaderDashboard = ({
         <ModeToggle />
         <div className="flex items-center gap-3 md:gap-4">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-100 truncate max-w-[150px]">
+            <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-100 truncate max-w-37.5">
               {session?.user?.name || "Người dùng"}
             </p>
           </div>
 
           <Button
+            title="Đăng xuất hệ thống"
             variant={"default"}
             onClick={handleSignOut}
             className="px-3 py-1.5 text-xs font-medium hover:text-white transition-colors"
           >
-            <LogOut className="w-4 h-4" />
+            {loading ? (
+              <Loader className="size-4 animate-spin" />
+            ) : (
+              <>
+                <LogOut className="w-4 h-4" />
+              </>
+            )}
           </Button>
         </div>
       </div>

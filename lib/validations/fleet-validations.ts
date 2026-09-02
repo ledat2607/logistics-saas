@@ -159,6 +159,27 @@ export const updateMaintenanceSchema = z
       ...(cost !== undefined && { cost }),
     };
   });
+
+export const scheduleSchema = z.object({
+  vehicleId: z.string(),
+  tripCode: z.string().optional(),
+  startLocation: z.string(),
+  endLocation: z.string(),
+  estimatedStartTime: z.coerce
+    .date()
+    .refine((d) => d instanceof Date && !isNaN(d.getTime()), {
+      message: "Ngày bắt đầu ước tính không hợp lệ",
+    }),
+  estimatedEndTime: z.coerce
+    .date()
+    .refine((d) => d instanceof Date && !isNaN(d.getTime()), {
+      message: "Ngày kết thúc ước tính không hợp lệ",
+    })
+    .optional(),
+
+  notes: z.string().optional(),
+});
 export type UpdateMaintenanceInput = z.infer<typeof updateMaintenanceSchema>;
 export type MaintenanceFormValues = z.infer<typeof maintenanceSchema>;
 export type CreateVehicleInput = z.infer<typeof createVehicleSchema>;
+export type ScheduleInput = z.infer<typeof scheduleSchema>;
