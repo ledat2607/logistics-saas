@@ -1,6 +1,8 @@
 "use client";
 
 import { MaintenanceCard } from "@/components/dashboard-component/schedule/maintaince-card";
+import ScheduleCard from "@/components/dashboard-component/schedule/schedule-card";
+import CreateTripDialog from "@/components/dashboard-component/schedule/schedule-create-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFleets } from "@/hooks/use-fleet";
 import { useSchedules } from "@/hooks/use-schedule";
 import {
   CalendarDays,
@@ -20,10 +23,31 @@ import {
   Wrench,
   Inbox,
 } from "lucide-react";
+import { useState } from "react";
 
 const SchedulePage = () => {
   const { normalSchedules, maintenanceSchedules, loading, error, refetch } =
     useSchedules();
+  const { fleets } = useFleets();
+
+  const vehicleOptions = fleets.map((item) => ({
+    id: item.vehicle.id,
+    label: `${item.vehicle.licensePlate}`,
+    defaultDriverId: item.driver?.id || null,
+  }));
+
+  const driverOptions = Array.from(
+    new Map(
+      fleets
+        .filter((item) => item.driver !== null)
+        .map((item) => [
+          item.driver.id,
+          { id: item.driver.id, name: item.driver.name },
+        ]),
+    ).values(),
+  );
+
+  const [open, setOpen] = useState(false);
 
   if (loading)
     return (
@@ -39,10 +63,9 @@ const SchedulePage = () => {
         Lỗi kết nối: {error}
       </div>
     );
-  console.log(maintenanceSchedules);
+
   return (
     <div className="p-6 max-w-[1600px] mx-auto space-y-8">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
@@ -52,12 +75,6 @@ const SchedulePage = () => {
             Theo dõi danh sách lịch trình vận hành và kế hoạch đăng kiểm, sửa
             chữa.
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button className="shadow-sm gap-2">
-            <Plus className="size-4" />
-            <span>Tạo lịch trình</span>
-          </Button>
         </div>
       </div>
 
@@ -92,7 +109,6 @@ const SchedulePage = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab 1: Operational Schedule */}
         <TabsContent
           value="schedule"
           className="space-y-4 focus-visible:outline-none"
@@ -102,9 +118,18 @@ const SchedulePage = () => {
               <CardTitle className="text-base font-semibold">
                 Lịch trình vận hành
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="flex justify-between lg:flex-row flex-col ">
                 Tổng cộng có {normalSchedules.length} lịch trình đang hoạt động
                 trong hệ thống.
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => setOpen(true)}
+                    className="shadow-sm gap-2"
+                  >
+                    <Plus className="size-4" />
+                    <span>Tạo lịch trình</span>
+                  </Button>
+                </div>
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0 divide-y">
@@ -116,34 +141,16 @@ const SchedulePage = () => {
                   </p>
                 </div>
               ) : (
-                normalSchedules.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-4 flex items-center justify-between hover:bg-muted/40 transition-colors"
-                  >
-                    <div className="space-y-1">
-                      <p className="font-medium text-sm text-foreground">
-                        {item.title}
-                      </p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Clock className="size-3.5" />
-                        <span>Mã lịch: #{item.id}</span>
-                      </div>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className="capitalize text-xs font-normal"
-                    >
-                      {item.status}
-                    </Badge>
-                  </div>
-                ))
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 p-4">
+                  {normalSchedules.map((item) => (
+                    <ScheduleCard data={item} key={item.id} />
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Tab 2: Maintenance Schedule */}
         <TabsContent value="maintenance" className="focus-visible:outline-none">
           {maintenanceSchedules.length === 0 ? (
             <Card className="border-border/60 shadow-xs">
@@ -167,6 +174,13 @@ const SchedulePage = () => {
           )}
         </TabsContent>
       </Tabs>
+      <CreateTripDialog
+        open={open}
+        setOpen={() => setOpen(!open)}
+        vehicles={vehicleOptions}
+        drivers={driverOptions}
+        refetch={refetch}
+      />
     </div>
   );
 };

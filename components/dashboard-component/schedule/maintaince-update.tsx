@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,8 @@ import {
 import { maintenanceService } from "@/services/maintaince.services";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/format-currency";
+import { BadgeAlert, Calendar, DollarSign, FileText, MapPin, Truck, User, Wrench } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 export interface MaintenanceSchedule {
   id: string;
@@ -141,140 +144,208 @@ const MaintainceUpdate = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
-            Cập nhật thông tin bảo dưỡng
-          </DialogTitle>
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+        <DialogHeader className="p-5 pb-4 bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-600 dark:text-amber-400">
+              <Wrench className="size-5" />
+            </div>
+            <div>
+              <DialogTitle className="text-base font-semibold">
+                Cập nhật thông tin bảo dưỡng
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                Chỉnh sửa trạng thái, chi phí và lịch trình bảo dưỡng phương
+                tiện.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-2">
-          {/* Thông tin phương tiện & tài xế (Read-only) */}
-          <div className="p-3 bg-muted/50 rounded-lg space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Phương tiện:</span>
-              <span className="font-medium">
-                {data.vehicle?.brand} {data.vehicle?.model} (
-                {data.vehicle?.licensePlate})
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          {/* CARDS: THÔNG TIN PHƯƠNG TIỆN & TÀI XẾ (READ-ONLY) */}
+          <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-100 dark:border-slate-800 space-y-2 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
+                <Truck className="size-3.5 text-slate-500" /> Phương tiện:
+              </span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+                {data.vehicle?.brand} {data.vehicle?.model}{" "}
+                <span className="text-primary font-mono ml-1">
+                  ({data.vehicle?.licensePlate})
+                </span>
               </span>
             </div>
             {data.driver && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Tài xế phụ trách:</span>
-                <span className="font-medium">
+              <div className="flex items-center justify-between pt-1 border-t border-slate-200/50 dark:border-slate-800">
+                <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
+                  <User className="size-3.5 text-slate-500" /> Tài xế phụ trách:
+                </span>
+                <span className="font-medium text-slate-700 dark:text-slate-300">
                   {data.driver.name}{" "}
-                  {data.driver.email ? `(${data.driver.email})` : ""}
+                  {data.driver.email && (
+                    <span className="text-muted-foreground text-[11px]">
+                      ({data.driver.email})
+                    </span>
+                  )}
                 </span>
               </div>
             )}
           </div>
 
-          {/* Tiêu đề & Trạng thái */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
             <div className="md:col-span-2 space-y-1.5">
-              <Label htmlFor="title">Tiêu đề</Label>
+              <Label htmlFor="title" className="text-xs font-medium">
+                Tiêu đề bảo dưỡng
+              </Label>
               <Input
                 id="title"
                 name="title"
                 disabled
                 value={formData.title || ""}
                 onChange={handleInputChange}
-                required
+                className="h-9 text-xs bg-slate-100/70 dark:bg-slate-800/50 font-medium cursor-not-allowed"
               />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="status">Trạng thái</Label>
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="status"
+                className="text-xs font-medium flex items-center gap-1"
+              >
+                <BadgeAlert className="size-3 text-amber-500" /> Trạng thái
+              </Label>
               <Select
                 value={formData.status || ""}
                 onValueChange={(val: string | null) => {
                   if (val) {
-                    setFormData((prev) => ({
+                    setFormData((prev: any) => ({
                       ...prev,
-                      status: val as MaintenanceSchedule["status"],
+                      status: val,
                     }));
                   }
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger id="status" className="h-9 text-xs">
                   <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="IN_PROGRESS">Đang tiến hành</SelectItem>
-                  <SelectItem value="COMPLETED">Hoàn thành</SelectItem>
-                  <SelectItem value="CANCELLED">Đã hủy</SelectItem>
+                  <SelectItem value="IN_PROGRESS" className="text-xs">
+                    🟡 Đang tiến hành
+                  </SelectItem>
+                  <SelectItem value="COMPLETED" className="text-xs">
+                    🟢 Hoàn thành
+                  </SelectItem>
+                  <SelectItem value="CANCELLED" className="text-xs">
+                    🔴 Đã hủy
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Chi phí & Địa điểm garage */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Separator />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div className="space-y-1.5">
-              <Label htmlFor="cost">Chi phí (VNĐ)</Label>
-              <Input
-                id="cost"
-                name="cost"
-                type="text"
-                value={formatCurrency(formData.details?.cost) || ""}
-                onChange={(e) => {
-                  const rawValue = e.target.value.replace(/\D/g, "");
-                  setFormData((prev) => ({
-                    ...prev,
-                    details: {
-                      ...prev.details,
-                      cost: rawValue ? Number(rawValue) : "",
-                    },
-                  }));
-                }}
-                placeholder="0"
-              />
+              <Label
+                htmlFor="cost"
+                className="text-xs font-medium flex items-center gap-1"
+              >
+                <DollarSign className="size-3 text-emerald-600" /> Chi phí thực
+                tế
+              </Label>
+              <div className="relative">
+                <Input
+                  id="cost"
+                  name="cost"
+                  type="text"
+                  value={formatCurrency(formData.details?.cost) || ""}
+                  onChange={(e) => {
+                    const rawValue = e.target.value.replace(/\D/g, "");
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      details: {
+                        ...prev.details,
+                        cost: rawValue ? Number(rawValue) : "",
+                      },
+                    }));
+                  }}
+                  placeholder="0"
+                  className="h-9 text-xs pr-12 font-mono"
+                />
+                <span className="absolute right-3 top-2 text-[11px] font-semibold text-muted-foreground select-none">
+                  VNĐ
+                </span>
+              </div>
             </div>
+
             <div className="space-y-1.5">
-              <Label htmlFor="garageLocation">Địa điểm Garage</Label>
+              <Label
+                htmlFor="garageLocation"
+                className="text-xs font-medium flex items-center gap-1"
+              >
+                <MapPin className="size-3 text-rose-500" /> Địa điểm Garage
+              </Label>
               <Input
                 id="garageLocation"
                 name="garageLocation"
                 value={formData.details?.garageLocation || ""}
                 onChange={handleDetailsChange}
-                placeholder="Tên hoặc địa chỉ garage..."
+                placeholder="Tên garage hoặc địa chỉ..."
+                className="h-9 text-xs"
               />
             </div>
           </div>
 
-          {/* Ngày bắt đầu, Ngày kết thúc*/}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div className="space-y-1.5">
-              <Label htmlFor="startDate">Ngày bắt đầu</Label>
+              <Label
+                htmlFor="startDate"
+                className="text-xs font-medium flex items-center gap-1"
+              >
+                <Calendar className="size-3 text-blue-500" /> Ngày bắt đầu
+              </Label>
               <Input
                 id="startDate"
                 name="startDate"
                 type="date"
                 value={formData.startDate || ""}
                 onChange={handleInputChange}
+                className="h-9 text-xs"
               />
             </div>
+
             <div className="space-y-1.5">
-              <Label htmlFor="endDate">Ngày kết thúc</Label>
+              <Label
+                htmlFor="endDate"
+                className="text-xs font-medium flex items-center gap-1"
+              >
+                <Calendar className="size-3 text-blue-500" /> Ngày kết thúc
+              </Label>
               <Input
                 id="endDate"
                 name="endDate"
                 type="date"
                 value={formData.endDate || ""}
                 onChange={handleInputChange}
+                className="h-9 text-xs"
               />
             </div>
           </div>
-
-          {/* Mô tả chi tiết */}
           <div className="space-y-1.5">
-            <Label htmlFor="description">Mô tả chi tiết</Label>
+            <Label
+              htmlFor="description"
+              className="text-xs font-medium flex items-center gap-1"
+            >
+              <FileText className="size-3" /> Ghi chú & Chi tiết hạng mục
+            </Label>
             <Textarea
               id="description"
               name="description"
               value={formData.details?.description || ""}
               onChange={(e) => {
                 const val = e.target.value;
-                setFormData((prev) => ({
+                setFormData((prev: any) => ({
                   ...prev,
                   description: val,
                   details: {
@@ -283,18 +354,23 @@ const MaintainceUpdate = ({
                   },
                 }));
               }}
-              placeholder="Nhập mô tả bảo dưỡng..."
+              placeholder="Nhập mô tả các hạng mục đã thay thế, sửa chữa..."
+              className="min-h-13.5 text-xs resize-none"
             />
           </div>
-          <DialogFooter className="pt-2">
+
+          <DialogFooter className="pt-3 border-t border-slate-100 dark:border-slate-800 -mx-5 -mb-5 p-4 bg-slate-50/50 dark:bg-slate-900/50">
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => setOpen(false)}
             >
               Hủy
             </Button>
-            <Button type="submit">Lưu cập nhật</Button>
+            <Button type="submit" size="sm">
+              Lưu cập nhật
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
