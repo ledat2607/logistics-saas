@@ -6,6 +6,7 @@ export type ScheduleEvent = {
   startDate: string;
   endDate: string;
   status: string;
+  createdAt: string;
   details: {
     tripCode: string | null;
     startLocation: string;
