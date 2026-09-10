@@ -18,6 +18,9 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { formatToDatetimeLocal } from "@/lib/format";
+import { ScheduleEvent } from "@/lib/types/schedule-type";
+import { cn } from "@/lib/utils";
 import {
   tripFormSchema,
   TripFormValues,
@@ -29,6 +32,7 @@ import {
   FileText,
   Loader2,
   MapPin,
+  Pencil,
   PlusCircle,
   Sparkles,
   Truck,
@@ -55,6 +59,7 @@ interface CreateTripDialogProps {
   drivers?: DriverOption[];
   onSubmitSuccess?: (data: TripFormValues) => void;
   refetch: () => void;
+  data?: ScheduleEvent;
 }
 
 const CreateTripDialog = ({
@@ -63,6 +68,7 @@ const CreateTripDialog = ({
   setOpen,
   vehicles = [],
   drivers = [],
+  data,
 }: CreateTripDialogProps) => {
   const {
     control,
@@ -73,15 +79,15 @@ const CreateTripDialog = ({
   } = useForm<TripFormValues>({
     resolver: zodResolver(tripFormSchema as any),
     defaultValues: {
-      tripCode: "",
-      vehicleId: "",
-      driverId: "",
-      startLocation: "",
-      endLocation: "",
-      estimatedStartTime: "",
-      estimatedEndTime: "",
-      status: "PLANNED",
-      notes: "",
+      tripCode: data?.details.tripCode || "",
+      vehicleId: data?.vehicle.licensePlate || "",
+      driverId: data?.driver?.name || "",
+      startLocation: data?.details.startLocation || "",
+      endLocation: data?.details.endLocation || "",
+      estimatedStartTime: formatToDatetimeLocal(data?.startDate),
+      estimatedEndTime: formatToDatetimeLocal(data?.endDate),
+      status: (data?.status as TripFormValues["status"]) || "PLANNED",
+      notes: data?.details.notes || "",
     },
   });
   const [loading, setLoading] = useState(false);
@@ -116,17 +122,23 @@ const CreateTripDialog = ({
     }
   };
 
+  console.log(data);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto p-0 gap-0">
         <DialogHeader className="p-6 pb-4 bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2 text-primary">
             <div className="p-2 bg-primary/10 rounded-lg">
-              <PlusCircle className="size-5 text-primary" />
+              {data ? (
+                <Pencil className="size-5 text-primary" />
+              ) : (
+                <PlusCircle className="size-5 text-primary" />
+              )}
             </div>
             <div>
               <DialogTitle className="text-lg font-semibold">
-                Tạo chuyến đi mới
+                {data ? "Cập nhật thông tin lịch trình" : "Tạo chuyến đi mới"}
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground mt-0.5">
                 Điền thông tin chi tiết để điều xe và lên lịch trình chuyến đi.
@@ -234,6 +246,7 @@ const CreateTripDialog = ({
                       id="tripCode"
                       placeholder="Nhập hoặc tạo tự động..."
                       className="pr-24 h-9 font-mono text-xs"
+                      disabled={!!data?.details.tripCode}
                     />
                     <Button
                       type="button"
@@ -396,6 +409,7 @@ const CreateTripDialog = ({
           {/* FOOTER NÚT BẤM */}
           <DialogFooter className="pt-3 border-t border-slate-100 dark:border-slate-800 -mx-6 -mb-6 p-4 bg-slate-50/50 dark:bg-slate-900/50">
             <Button
+              className={cn({ block: !data, hidden: data })}
               type="button"
               variant="outline"
               size="sm"
@@ -409,7 +423,7 @@ const CreateTripDialog = ({
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang tạo...
                 </>
               ) : (
-                "Tạo chuyến đi"
+                <>{data ? "Cập nhật chuyến đi" : "Tạo chuyến đi mới"}</>
               )}
             </Button>
           </DialogFooter>

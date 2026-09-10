@@ -27,7 +27,7 @@ import {
   RefreshCw,
   Send,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/format-currency";
+import { formatCurrency } from "@/lib/format";
 import {
   Popover,
   PopoverContent,

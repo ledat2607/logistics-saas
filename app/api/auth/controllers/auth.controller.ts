@@ -15,14 +15,13 @@ export const authController = {
           email,
           password,
           name,
-          // Truyền phẳng các trường này ra ngoài
+
           companyName: companyName || null,
           role: role || "DRIVER",
           fleetSize: fleetSize ? parseInt(fleetSize) : 0,
         },
       });
 
-      // Trả về kết quả (Hàm signUpEmail tự động lo hash pass, tạo account, tạo session)
       return NextResponse.json(
         { message: "Đăng ký thành công!", user: userSession.user },
         { status: 201 },

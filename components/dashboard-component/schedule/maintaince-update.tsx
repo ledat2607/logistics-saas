@@ -20,8 +20,17 @@ import {
 } from "@/components/ui/select";
 import { maintenanceService } from "@/services/maintaince.services";
 import { toast } from "sonner";
-import { formatCurrency } from "@/lib/format-currency";
-import { BadgeAlert, Calendar, DollarSign, FileText, MapPin, Truck, User, Wrench } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
+import {
+  BadgeAlert,
+  Calendar,
+  DollarSign,
+  FileText,
+  MapPin,
+  Truck,
+  User,
+  Wrench,
+} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export interface MaintenanceSchedule {

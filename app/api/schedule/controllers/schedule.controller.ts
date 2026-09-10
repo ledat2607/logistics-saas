@@ -219,6 +219,7 @@ export const scheduleController = {
         status: trip.status,
         vehicle,
         driver,
+        createdAt: trip.createdAt,
         details: {
           tripCode: trip.tripCode,
           startLocation: trip.startLocation,
