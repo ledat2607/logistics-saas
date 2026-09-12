@@ -12,19 +12,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Select } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFleets } from "@/hooks/use-fleet";
 import { useSchedules } from "@/hooks/use-schedule";
 import {
   CalendarDays,
   Clock,
+  Filter,
+  Inbox,
   Loader2,
   Plus,
-  Wrench,
-  Inbox,
   Search,
-  Filter,
+  Wrench,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -33,33 +32,35 @@ const SchedulePage = () => {
     useSchedules();
   const { fleets } = useFleets();
 
-  const vehicleOptions = fleets.map((item) => ({
-    id: item.vehicle.id,
-    label: `${item.vehicle.licensePlate}`,
-    defaultDriverId: item.driver?.id || null,
-  }));
+  const vehicleOptions = useMemo(() => {
+    return (fleets || []).map((item) => ({
+      id: item.vehicle.id,
+      label: `${item.vehicle.licensePlate}`,
+      defaultDriverId: item.driver?.id || null,
+    }));
+  }, [fleets]);
 
-  const driverOptions = Array.from(
-    new Map(
-      fleets
-        .filter((item) => item.driver !== null)
-        .map((item) => [
-          item.driver.id,
-          { id: item.driver.id, name: item.driver.name },
-        ]),
-    ).values(),
-  );
+  // File: SchedulePage.tsx
+  const driverOptions = useMemo(() => {
+    return Array.from(
+      new Map(
+        (fleets || [])
+          .filter((item) => item.driver !== null)
+          .map((item) => {
+            const driverId = item.driver.id || item.driver.userId;
+            return [driverId, { id: driverId, name: item.driver.name }];
+          }),
+      ).values(),
+    );
+  }, [fleets]);
 
   const [open, setOpen] = useState(false);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("ALL");
   const [sortBy, setSortBy] = useState("newest");
 
- 
-
   const filteredSchedules = useMemo(() => {
-    return normalSchedules
+    return (normalSchedules || [])
       .filter((schedule) => {
         const matchTerm = schedule.details?.tripCode
           ?.toLowerCase()
@@ -156,7 +157,7 @@ const SchedulePage = () => {
               <CardTitle className="text-base font-semibold">
                 Lịch trình vận hành
               </CardTitle>
-              <CardDescription className="flex justify-between lg:flex-row flex-col ">
+              <CardDescription className="flex justify-between lg:flex-row flex-col">
                 Tổng cộng có {normalSchedules.length} lịch trình đang hoạt động
                 trong hệ thống.
                 <div className="flex items-center gap-2">
@@ -229,9 +230,15 @@ const SchedulePage = () => {
                     </div>
 
                     {filteredSchedules.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 p-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
                         {filteredSchedules.map((item) => (
-                          <ScheduleCard data={item} key={item.id} refetch={refetch} />
+                          <ScheduleCard
+                            data={item}
+                            key={item.id}
+                            refetch={refetch}
+                            vehicles={vehicleOptions}
+                            drivers={driverOptions}
+                          />
                         ))}
                       </div>
                     ) : (
@@ -269,9 +276,10 @@ const SchedulePage = () => {
           )}
         </TabsContent>
       </Tabs>
+
       <CreateTripDialog
         open={open}
-        setOpen={() => setOpen(!open)}
+        setOpen={setOpen}
         vehicles={vehicleOptions}
         drivers={driverOptions}
         refetch={refetch}

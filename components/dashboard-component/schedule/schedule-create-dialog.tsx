@@ -20,7 +20,6 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { formatToDatetimeLocal } from "@/lib/format";
 import { ScheduleEvent } from "@/lib/types/schedule-type";
-import { cn } from "@/lib/utils";
 import {
   tripFormSchema,
   TripFormValues,
@@ -37,7 +36,7 @@ import {
   Sparkles,
   Truck,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -59,8 +58,16 @@ interface CreateTripDialogProps {
   drivers?: DriverOption[];
   onSubmitSuccess?: (data: TripFormValues) => void;
   refetch: () => void;
-  data?: ScheduleEvent;
+  editData?: ScheduleEvent;
 }
+
+const statusOptions = [
+  { value: "PLANNED", label: "Đang lên kế hoạch" },
+  { value: "IN_PROGRESS", label: "Đang thực hiện" },
+  { value: "COMPLETED", label: "Hoàn thành" },
+  { value: "CANCELLED", label: "Đã hủy" },
+  { value: "DELAYED", label: "Đang trì hoãn" },
+];
 
 const CreateTripDialog = ({
   open,
@@ -68,8 +75,10 @@ const CreateTripDialog = ({
   setOpen,
   vehicles = [],
   drivers = [],
-  data,
+  editData,
 }: CreateTripDialogProps) => {
+  const [loading, setLoading] = useState(false);
+
   const {
     control,
     setValue,
@@ -79,25 +88,73 @@ const CreateTripDialog = ({
   } = useForm<TripFormValues>({
     resolver: zodResolver(tripFormSchema as any),
     defaultValues: {
-      tripCode: data?.details.tripCode || "",
-      vehicleId: data?.vehicle.licensePlate || "",
-      driverId: data?.driver?.name || "",
-      startLocation: data?.details.startLocation || "",
-      endLocation: data?.details.endLocation || "",
-      estimatedStartTime: formatToDatetimeLocal(data?.startDate),
-      estimatedEndTime: formatToDatetimeLocal(data?.endDate),
-      status: (data?.status as TripFormValues["status"]) || "PLANNED",
-      notes: data?.details.notes || "",
+      tripCode: "",
+      vehicleId: "",
+      driverId: "",
+      startLocation: "",
+      endLocation: "",
+      estimatedStartTime: "",
+      estimatedEndTime: "",
+      status: "PLANNED",
+      notes: "",
+      originalId: "",
     },
   });
-  const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (open) {
+      if (editData) {
+        const matchedVehicle = vehicles.find(
+          (v) => v.id === editData.vehicle?.id,
+        );
+        const matchedDriver = drivers.find((d) => d.id === editData.driver?.id);
+
+        reset({
+          tripCode: editData.details?.tripCode || "",
+          vehicleId: matchedVehicle
+            ? matchedVehicle.id
+            : editData.vehicle?.id || "",
+          driverId: matchedDriver
+            ? matchedDriver.id
+            : editData.driver?.id || "",
+          startLocation: editData.details?.startLocation || "",
+          endLocation: editData.details?.endLocation || "",
+          estimatedStartTime: formatToDatetimeLocal(editData.startDate),
+          estimatedEndTime: formatToDatetimeLocal(editData.endDate),
+          status: (editData.status as TripFormValues["status"]) || "PLANNED",
+          notes: editData.details?.notes || "",
+          originalId: editData.originalId || "",
+        });
+      } else {
+        reset({
+          tripCode: "",
+          vehicleId: "",
+          driverId: "",
+          startLocation: "",
+          endLocation: "",
+          estimatedStartTime: "",
+          estimatedEndTime: "",
+          status: "PLANNED",
+          notes: "",
+          originalId: "",
+        });
+      }
+    }
+  }, [editData, open, vehicles, drivers, reset]);
+
+  // Xử lý khi người dùng chọn xe
   const handleSelectVehicle = (selectedVehicleId: string) => {
-    setValue("vehicleId", selectedVehicleId);
+    setValue("vehicleId", selectedVehicleId, { shouldValidate: true });
 
+    // Tự gợi ý tài xế mặc định của xe (nếu có)
     const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
-    setValue("driverId", selectedVehicle?.defaultDriverId || "");
+    if (selectedVehicle?.defaultDriverId) {
+      setValue("driverId", selectedVehicle.defaultDriverId, {
+        shouldValidate: true,
+      });
+    }
   };
+
   const generateTripCode = () => {
     const now = new Date();
     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
@@ -108,21 +165,44 @@ const CreateTripDialog = ({
   const onSubmit = async (data: TripFormValues) => {
     try {
       setLoading(true);
-      const result = await scheduleService.createSchedule(data);
-
+      await scheduleService.createSchedule(data);
       toast.success("Tạo chuyến đi mới thành công!");
       setOpen(false);
       reset();
       refetch();
-      setLoading(false);
     } catch (error: any) {
       console.error("Error creating schedule:", error);
       toast.error(error.message || "Tạo lịch trình thất bại.");
+    } finally {
       setLoading(false);
     }
   };
 
-  console.log(data);
+  const handleUpdateTrip = async (id: string, data: TripFormValues) => {
+    try {
+      setLoading(true);
+      await scheduleService.updateSchedule(id, data);
+      toast.success("Cập nhật chuyến đi thành công!");
+      setOpen(false);
+      reset();
+      refetch();
+    } catch (error: any) {
+      console.error("Error updating schedule:", error);
+      toast.error(error.message || "Cập nhật lịch trình thất bại.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const targetId = editData?.originalId;
+
+  const onSave = async (tripValues: TripFormValues) => {
+    if (targetId && editData) {
+      await handleUpdateTrip(targetId, tripValues);
+    } else {
+      await onSubmit(tripValues);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -130,7 +210,7 @@ const CreateTripDialog = ({
         <DialogHeader className="p-6 pb-4 bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2 text-primary">
             <div className="p-2 bg-primary/10 rounded-lg">
-              {data ? (
+              {editData ? (
                 <Pencil className="size-5 text-primary" />
               ) : (
                 <PlusCircle className="size-5 text-primary" />
@@ -138,7 +218,9 @@ const CreateTripDialog = ({
             </div>
             <div>
               <DialogTitle className="text-lg font-semibold">
-                {data ? "Cập nhật thông tin lịch trình" : "Tạo chuyến đi mới"}
+                {editData
+                  ? "Cập nhật thông tin lịch trình"
+                  : "Tạo chuyến đi mới"}
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground mt-0.5">
                 Điền thông tin chi tiết để điều xe và lên lịch trình chuyến đi.
@@ -147,38 +229,56 @@ const CreateTripDialog = ({
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
+        <form
+          onSubmit={handleSubmit(onSave, (errors) =>
+            console.log("Lỗi validation:", errors),
+          )}
+          className="p-6 space-y-5"
+        >
+          {/* PHẦN 1: XE & TÀI XẾ */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Truck className="size-3.5" /> Thông tin xe & Tài xế
             </h4>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {/* 1. XE PHÂN CÔNG */}
               <div className="space-y-1.5">
-                <Label htmlFor="vehicleId" className="text-xs font-medium">
-                  Xe phân công <span className="text-destructive">*</span>
-                </Label>
+                <label className="text-sm font-medium">Xe phân công *</label>
                 <Controller
                   name="vehicleId"
                   control={control}
                   render={({ field }) => {
-                    const currentValue = field.value || "";
+                    // Tìm xe được chọn dựa trên ID
+                    const selectedVehicle = vehicles.find(
+                      (v) => String(v.id) === String(field.value),
+                    );
+
                     return (
                       <Select
                         onValueChange={(val) => {
                           field.onChange(val);
-                          handleSelectVehicle(val || "");
+                          // Tự động chọn tài xế mặc định nếu xe đó có gán tài xế
+                          const vObj = vehicles.find(
+                            (item) => String(item.id) === String(val),
+                          );
+                          if (vObj?.defaultDriverId) {
+                            setValue("driverId", vObj.defaultDriverId);
+                          }
                         }}
-                        value={field.value}
+                        value={field.value ? String(field.value) : ""}
                       >
-                        <SelectTrigger id="vehicleId" className="h-9">
+                        <SelectTrigger className="h-9">
+                          {/* 💡 HIỂN THỊ TRỰC TIẾP BIỂN SỐ XE */}
                           <SelectValue placeholder="Chọn xe">
-                            {vehicles.find((d) => d.id === currentValue)?.label}
+                            {selectedVehicle
+                              ? selectedVehicle.label
+                              : undefined}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           {vehicles.map((v) => (
-                            <SelectItem key={v.id} value={v.id}>
+                            <SelectItem key={v.id} value={String(v.id)}>
                               {v.label}
                             </SelectItem>
                           ))}
@@ -187,39 +287,34 @@ const CreateTripDialog = ({
                     );
                   }}
                 />
-                {errors.vehicleId && (
-                  <p className="text-xs font-medium text-destructive">
-                    {errors.vehicleId.message}
-                  </p>
-                )}
               </div>
 
-              {/* Tài xế */}
+              {/* 2. TÀI XẾ PHỤ TRÁCH */}
               <div className="space-y-1.5">
-                <Label htmlFor="driverId" className="text-xs font-medium">
-                  Tài xế phụ trách
-                </Label>
+                <label className="text-sm font-medium">Tài xế phụ trách</label>
                 <Controller
                   name="driverId"
                   control={control}
                   render={({ field }) => {
-                    const currentValue = field.value || "";
+                    // Tìm tài xế được chọn dựa trên ID
+                    const selectedDriver = drivers.find(
+                      (d) => String(d.id) === String(field.value),
+                    );
+
                     return (
                       <Select
                         onValueChange={field.onChange}
-                        value={field.value || ""}
+                        value={field.value ? String(field.value) : ""}
                       >
-                        <SelectTrigger id="driverId" className="h-9">
-                          <SelectValue
-                            placeholder="Chọn tài xế"
-                            className={"w-full"}
-                          >
-                            {drivers.find((d) => d.id === currentValue)?.name}
+                        <SelectTrigger className="h-9">
+                          {/* 💡 HIỂN THỊ TRỰC TIẾP TÊN TÀI XẾ */}
+                          <SelectValue placeholder="Chọn tài xế">
+                            {selectedDriver ? selectedDriver.name : undefined}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           {drivers.map((d) => (
-                            <SelectItem key={d.id} value={d.id}>
+                            <SelectItem key={d.id} value={String(d.id)}>
                               {d.name}
                             </SelectItem>
                           ))}
@@ -246,22 +341,24 @@ const CreateTripDialog = ({
                       id="tripCode"
                       placeholder="Nhập hoặc tạo tự động..."
                       className="pr-24 h-9 font-mono text-xs"
-                      disabled={!!data?.details.tripCode}
+                      disabled={!!editData?.details?.tripCode}
                     />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      className="absolute right-1 h-7 text-xs gap-1 px-2 text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400"
-                      onClick={() =>
-                        setValue("tripCode", generateTripCode(), {
-                          shouldValidate: true,
-                        })
-                      }
-                    >
-                      <Sparkles className="size-3.5 text-amber-500" />
-                      Tạo mã
-                    </Button>
+                    {!editData && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="absolute right-1 h-7 text-xs gap-1 px-2 text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400"
+                        onClick={() =>
+                          setValue("tripCode", generateTripCode(), {
+                            shouldValidate: true,
+                          })
+                        }
+                      >
+                        <Sparkles className="size-3.5 text-amber-500" />
+                        Tạo mã
+                      </Button>
+                    )}
                   </div>
                 )}
               />
@@ -277,7 +374,6 @@ const CreateTripDialog = ({
             </h4>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {/* Điểm đi */}
               <div className="space-y-1.5">
                 <Label htmlFor="startLocation" className="text-xs font-medium">
                   Điểm xuất phát <span className="text-destructive">*</span>
@@ -301,7 +397,6 @@ const CreateTripDialog = ({
                 )}
               </div>
 
-              {/* Điểm đến */}
               <div className="space-y-1.5">
                 <Label htmlFor="endLocation" className="text-xs font-medium">
                   Điểm đến <span className="text-destructive">*</span>
@@ -406,24 +501,64 @@ const CreateTripDialog = ({
             </div>
           </div>
 
+          {/* TRẠNG THÁI */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Calendar className="size-3.5" /> Trạng thái chuyến đi
+            </h4>
+            <div className="space-y-1.5">
+              <Label htmlFor="status" className="text-xs font-medium">
+                Trạng thái <span className="text-destructive">*</span>
+              </Label>
+              <Controller
+                name="status"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || "PLANNED"}
+                  >
+                    <SelectTrigger id="status" className="h-9">
+                      <SelectValue placeholder="Chọn trạng thái" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.status && (
+                <p className="text-xs font-medium text-destructive">
+                  {errors.status.message}
+                </p>
+              )}
+            </div>
+          </div>
+
           {/* FOOTER NÚT BẤM */}
           <DialogFooter className="pt-3 border-t border-slate-100 dark:border-slate-800 -mx-6 -mb-6 p-4 bg-slate-50/50 dark:bg-slate-900/50">
-            <Button
-              className={cn({ block: !data, hidden: data })}
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => reset()}
-            >
-              Xóa dữ liệu
-            </Button>
-            <Button type="submit" size="sm">
+            {!editData && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => reset()}
+              >
+                Xóa dữ liệu
+              </Button>
+            )}
+            <Button type="submit" size="sm" disabled={loading}>
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang tạo...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {editData ? "Đang cập nhật..." : "Đang tạo..."}
                 </>
               ) : (
-                <>{data ? "Cập nhật chuyến đi" : "Tạo chuyến đi mới"}</>
+                <>{editData ? "Cập nhật chuyến đi" : "Tạo chuyến đi mới"}</>
               )}
             </Button>
           </DialogFooter>
