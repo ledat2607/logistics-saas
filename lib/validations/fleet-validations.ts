@@ -178,6 +178,10 @@ export const scheduleSchema = z.object({
     .optional(),
 
   notes: z.string().optional(),
+  status: z
+    .enum(["PLANNED", "IN_PROGRESS", "COMPLETED", "CANCELLED", "DELAYED"])
+    .default("PLANNED"),
+  driverId: z.string(),
 });
 export type UpdateMaintenanceInput = z.infer<typeof updateMaintenanceSchema>;
 export type MaintenanceFormValues = z.infer<typeof maintenanceSchema>;

@@ -11,14 +11,25 @@ import {
   Truck,
 } from "lucide-react";
 import { useState } from "react";
-import CreateTripDialog from "./schedule-create-dialog";
+// Import các interface type từ dialog
+import CreateTripDialog, {
+  DriverOption,
+  VehicleOption,
+} from "./schedule-create-dialog";
 
 interface ScheduleCardProps {
   data: ScheduleEvent;
   refetch?: () => void;
+  vehicles?: VehicleOption[];
+  drivers?: DriverOption[];
 }
 
-const ScheduleCard = ({ data, refetch }: ScheduleCardProps) => {
+const ScheduleCard = ({
+  data,
+  refetch,
+  vehicles = [],
+  drivers = [],
+}: ScheduleCardProps) => {
   const [open, setOpen] = useState(false);
 
   const formatDate = (dateString: string) => {
@@ -50,6 +61,7 @@ const ScheduleCard = ({ data, refetch }: ScheduleCardProps) => {
         return "bg-slate-50 text-slate-700 border-slate-200";
     }
   };
+  console.log(vehicles, drivers);
   return (
     <>
       <div className="w-full max-w-2xl bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden font-sans">
@@ -177,7 +189,9 @@ const ScheduleCard = ({ data, refetch }: ScheduleCardProps) => {
         open={open}
         refetch={() => refetch?.()}
         setOpen={setOpen}
-        data={data}
+        editData={data}
+        vehicles={vehicles}
+        drivers={drivers}
       />
     </>
   );

@@ -255,7 +255,6 @@ export const maintenanceController = {
 
       let updatedVehicle = null;
       const vehicleId = log.vehicleId;
-
       // 2. Nếu trạng thái bảo dưỡng mới là IN_PROGRESS -> Đổi trạng thái xe thành MAINTENANCE
       if (log.status === "IN_PROGRESS") {
         const [v] = await db

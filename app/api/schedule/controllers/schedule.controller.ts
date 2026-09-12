@@ -268,4 +268,72 @@ export const scheduleController = {
       );
     }
   },
+
+  /**Update schedule */
+  updateSchedule: async (
+    request: Request,
+    { params }: { params?: Promise<{ id: string }> } = {},
+  ) => {
+    try {
+      const { id: scheduleId } = (await params) ?? {};
+      const body = await request.json();
+
+      if (!scheduleId) {
+        return NextResponse.json(
+          { message: "Không tìm thấy lịch trình để cập nhật" },
+          { status: 404 },
+        );
+      }
+
+      const validationResult = await scheduleSchema.safeParseAsync(body);
+      
+      if (!validationResult.success) {
+        console.log("Zod Validation Errors:", validationResult.error.format());
+        return NextResponse.json(
+          {
+            message: "Dữ liệu không hợp lệ",
+            errors: validationResult.error.flatten(),
+          },
+          { status: 429 },
+        );
+      }
+      
+      const updateData = validationResult.data;
+      
+      const [scheduleUpdatelog] = await db
+        .update(trips)
+        .set(updateData)
+        .where(eq(trips.id, scheduleId))
+        .returning();
+
+      const vehicleId = scheduleUpdatelog?.vehicleId;
+      if(scheduleUpdatelog?.status === "IN_PROGRESS" && vehicleId) {
+        await db.update(vehicles)
+          .set({
+            status: "IN_TRANSIT",
+            updatedAt: new Date(),
+          })
+          .where(eq(vehicles.id, vehicleId));
+      }
+
+      if (!scheduleUpdatelog) {
+        return NextResponse.json(
+          { message: "Không tìm thấy lịch trình để cập nhật" },
+          { status: 404 },
+        );
+      }
+      return NextResponse.json(
+        {
+          message: "Cập nhật lịch trình thành công!",
+        },
+        { status: 200 },
+      );
+    } catch (error) {
+      console.error("Update Schedule Error:", error);
+      return NextResponse.json(
+        { error: "Cập nhật lịch trình thất bại." },
+        { status: 500 },
+      );
+    }
+  },
 };
