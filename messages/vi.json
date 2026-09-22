@@ -1,0 +1,82 @@
+{
+  "Navigation": {
+    "home": "Trang chủ",
+    "features": "Tính năng",
+    "solutions": "Giải pháp",
+    "pricing": "Bảng giá",
+    "about": "Giới thiệu",
+    "login": "Đăng nhập",
+    "register": "Đăng ký miễn phí",
+    "goToDashboard": "Vào Dashboard"
+  },
+  "Hero": {
+    "badge": "Trung tâm điều hành quản lý đội xe & vận tải",
+    "titleLine1": "Tối ưu đội xe,",
+    "titleLine2": "Bứt phá dịch vụ.",
+    "description": "Giải pháp quản lý vận tải chính xác dành cho doanh nghiệp vừa và nhỏ. Theo dõi thời gian thực, tự động hóa lịch trình và phân tích nhiên liệu nâng cao trên một nền tảng duy nhất.",
+    "btnGetStarted": "Đăng ký miễn phí",
+    "btnWatchDemo": "Xem Demo",
+    "stats": {
+      "onTimeDelivery": "Giao hàng đúng giờ",
+      "fuelSavings": "Tiết kiệm nhiên liệu",
+      "gpsTracking": "Định vị GPS 24/7"
+    },
+    "cards": {
+      "activeVehicles": "Xe đang hoạt động",
+      "fleetOnline": "128 Xe trực tuyến",
+      "security": "Bảo mật",
+      "isoCertified": "Chứng nhận ISO 27001"
+    },
+    "imageAlt": "Giao diện quản lý đội xe"
+  },
+  "WhyUs": {
+    "title": "Tại sao chọn chúng tôi",
+    "subtitle": "Giải pháp toàn diện giúp tối ưu hóa vận tải và quản lý đội xe hiệu quả",
+    "cards": {
+      "realtime": {
+        "title": "Theo dõi thời gian thực",
+        "description": "Giám sát vị trí, tốc độ và mức tiêu thụ nhiên liệu của đội xe theo thời gian thực với công nghệ GPS chính xác.",
+        "subContent": "Khám phá bản đồ sống"
+      },
+      "scheduling": {
+        "title": "Điều xe thông minh",
+        "description": "Tự động hóa lịch trình và tối ưu tuyến đường để giảm thiểu thời gian chờ và tình trạng trễ hàng.",
+        "subContent": "Tìm hiểu tính năng điều xe"
+      },
+      "analytics": {
+        "title": "Phân tích nhiên liệu",
+        "description": "Báo cáo chuyên sâu về mức tiêu thụ nhiên liệu, giúp phát hiện thất thoát và tối ưu chi phí vận hành.",
+        "subContent": "Xem báo cáo mẫu"
+      }
+    }
+  },
+  "Footer": {
+    "ctaTitle": "Sẵn sàng tối ưu hóa vận tải của bạn?",
+    "ctaSub": "Tham gia cùng hơn 500+ doanh nghiệp ngay hôm nay",
+    "ctaDesc": "Bắt đầu 14 ngày dùng thử miễn phí. Không yêu cầu thẻ tín dụng.",
+    "btnTrial": "Bắt đầu dùng thử miễn phí",
+    "btnSales": "Liên hệ tư vấn",
+    "brandDesc": "Quản lý đội xe hiện đại. Tin cậy, chính xác và kiểm soát toàn diện ngay trong tầm tay bạn.",
+    "product": {
+      "title": "Sản phẩm",
+      "aboutUs": "Về chúng tôi",
+      "careers": "Tuyển dụng",
+      "pricing": "Bảng giá"
+    },
+    "support": {
+      "title": "Hỗ trợ",
+      "contact": "Liên hệ",
+      "terms": "Điều khoản dịch vụ",
+      "privacy": "Chính sách bảo mật"
+    },
+    "newsletter": {
+      "title": "Bản tin",
+      "desc": "Cập nhật những công nghệ vận tải và logistics mới nhất.",
+      "placeholder": "email@vi-du.com",
+      "btnJoin": "Đăng ký"
+    },
+    "copyright": "© 2026 Logistics Core. Bảo lưu mọi quyền.",
+    "language": "Tiếng Việt",
+    "systemStatus": "Hệ thống hoạt động"
+  }
+}

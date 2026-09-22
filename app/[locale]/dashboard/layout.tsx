@@ -1,10 +1,10 @@
 "use client";
 
 import { authClient } from "@/lib/auth-clients";
-import SidebarDashboard from "../../components/dashboard-component/sidebar";
 import { useState } from "react";
 import HeaderDashboard from "@/components/dashboard-component/header-dashboard";
 import { Loader2 } from "lucide-react";
+import SidebarDashboard from "@/components/dashboard-component/sidebar";
 
 export default function DashboardLayout({
   children,

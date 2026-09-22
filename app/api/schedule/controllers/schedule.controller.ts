@@ -2,7 +2,16 @@ import { db } from "@/db";
 import { maintenanceLogs, trips, user, vehicles } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { scheduleSchema } from "@/lib/validations/fleet-validations";
-import { aliasedTable, and, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import {
+  aliasedTable,
+  and,
+  desc,
+  eq,
+  gte,
+  inArray,
+  lte,
+  ne,
+} from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -90,6 +99,13 @@ export const scheduleController = {
             { status: 419 },
           );
         }
+
+        await db
+          .update(vehicles)
+          .set({
+            driverId,
+          })
+          .where(eq(vehicles.id, vehicleId));
       }
 
       const [newScheduleRecord] = await db
@@ -280,51 +296,112 @@ export const scheduleController = {
 
       if (!scheduleId) {
         return NextResponse.json(
-          { message: "Không tìm thấy lịch trình để cập nhật" },
-          { status: 404 },
+          {
+            message: "Không tìm thấy ID lịch trình",
+          },
+          { status: 400 },
         );
       }
 
-      const validationResult = await scheduleSchema.safeParseAsync(body);
-      
-      if (!validationResult.success) {
-        console.log("Zod Validation Errors:", validationResult.error.format());
+      const validateResult = await scheduleSchema.safeParseAsync(body);
+
+      if (!validateResult.success) {
+        console.log(
+          "Zod validate error",
+          (await validateResult).error?.format(),
+        );
         return NextResponse.json(
           {
             message: "Dữ liệu không hợp lệ",
-            errors: validationResult.error.flatten(),
           },
-          { status: 429 },
+          { status: 400 },
         );
       }
-      
-      const updateData = validationResult.data;
-      
-      const [scheduleUpdatelog] = await db
+
+      const updateData = validateResult.data;
+      const newStart = updateData.estimatedStartTime;
+      const newEnd = updateData.estimatedEndTime ?? newStart;
+      const activeStatus = ["PLANNED", "IN_PROGRESS"] as const;
+      const driverId = updateData?.driverId;
+
+      const existingSchedule = await db.query.trips.findFirst({
+        where: eq(trips.id, scheduleId),
+      });
+
+      if (!existingSchedule) {
+        return NextResponse.json(
+          { message: "Không tìm thấy lịch trình" },
+          { status: 404 }, // Sửa từ 411 -> 404
+        );
+      }
+
+      // 3. Kiểm tra trùng lịch của tài xế
+      const targetDriverId = driverId || existingSchedule.driverId;
+
+      if (targetDriverId) {
+        const existingDriverSchedule = await db.query.trips.findFirst({
+          where: and(
+            eq(trips.driverId, targetDriverId),
+            ne(trips.id, scheduleId),
+            inArray(trips.status, activeStatus),
+            lte(trips.estimatedStartTime, newEnd),
+            gte(trips.estimatedEndTime, newStart),
+          ),
+        });
+
+        if (existingDriverSchedule) {
+          return NextResponse.json(
+            { message: "Tài xế đã có lịch trình trong thời gian này" },
+            { status: 409 },
+          );
+        }
+      }
+
+      // 4. Cập nhật chuyến đi
+      const [updatedTrip] = await db
         .update(trips)
-        .set(updateData)
+        .set({ ...updateData, updatedAt: new Date() })
         .where(eq(trips.id, scheduleId))
         .returning();
 
-      const vehicleId = scheduleUpdatelog?.vehicleId;
-      if(scheduleUpdatelog?.status === "IN_PROGRESS" && vehicleId) {
-        await db.update(vehicles)
-          .set({
-            status: "IN_TRANSIT",
+      // 5. Cập nhật phương tiện (nếu có gán xe)
+      const vehicleId = updatedTrip?.vehicleId;
+
+      if (vehicleId) {
+        const vehicle = await db.query.vehicles.findFirst({
+          where: eq(vehicles.id, vehicleId),
+        });
+
+        if (vehicle) {
+          // Chuẩn bị dữ liệu update cho xe
+          const vehicleUpdateData: Record<string, any> = {
             updatedAt: new Date(),
-          })
-          .where(eq(vehicles.id, vehicleId));
+          };
+
+          // Gán tài xế cho xe nếu có thay đổi
+          if (driverId && vehicle.driverId !== driverId) {
+            vehicleUpdateData.driverId = driverId;
+          }
+
+          // Đổi trạng thái xe sang IN_TRANSIT nếu chuyến đi đang diễn ra
+          if (updatedTrip.status === "IN_PROGRESS") {
+            vehicleUpdateData.status = "IN_TRANSIT";
+          }
+
+          // Chỉ trigger update DB khi có sự thay đổi
+          if (Object.keys(vehicleUpdateData).length > 1) {
+            await db
+              .update(vehicles)
+              .set(vehicleUpdateData)
+              .where(eq(vehicles.id, vehicleId));
+          }
+        }
       }
 
-      if (!scheduleUpdatelog) {
-        return NextResponse.json(
-          { message: "Không tìm thấy lịch trình để cập nhật" },
-          { status: 404 },
-        );
-      }
       return NextResponse.json(
         {
           message: "Cập nhật lịch trình thành công!",
+          data: updatedTrip,
         },
         { status: 200 },
       );

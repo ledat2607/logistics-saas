@@ -26,24 +26,24 @@ export default function SidebarDashboard({
 }: SidebarProps) {
   const menuItems = [
     {
-      name: "Dashboard",
+      name: "Quản lý chung",
       icon: LayoutDashboard,
       href: "/dashboard",
     },
     {
-      name: "Fleet",
+      name: "Quản lý phương tiện",
       icon: Container,
 
       href: "/dashboard/fleets",
     },
     {
-      name: "Schedule",
+      name: "Quản lý lịch trình",
       icon: Calendar,
 
       href: "/dashboard/schedules",
     },
     {
-      name: "Shipments",
+      name: "Chuyến đi",
       icon: Truck,
 
       href: "/dashboard/shipments",
@@ -51,8 +51,8 @@ export default function SidebarDashboard({
   ];
 
   const bottomItems = [
-    { name: "Settings", icon: Settings },
-    { name: "Support", icon: HelpCircle },
+    { name: "Cài đặt", icon: Settings },
+    { name: "Hỗ trợ", icon: HelpCircle },
   ];
 
   const pathname = usePathname();
@@ -67,10 +67,14 @@ export default function SidebarDashboard({
           </div>
           {!isCollapsed && (
             <div className="transition-opacity duration-200 hidden lg:block">
-              <h2 className="text-white font-bold text-base leading-tight">
-                Logistics Core
-              </h2>
-              <p className="text-xs text-slate-500">Fleet Management</p>
+              <Link href={"/"} className="cursor-pointer">
+                <h2 className="text-white font-bold text-base leading-tight">
+                  Logistics Core
+                </h2>
+              </Link>
+              <p className="text-[10px] text-slate-500">
+                Quản lý phương tiện thông minh
+              </p>
             </div>
           )}
         </div>
@@ -110,7 +114,7 @@ export default function SidebarDashboard({
         >
           <Plus size={18} className="shrink-0" />
           {!isCollapsed && (
-            <span className="truncate min-w-0">New Shipment</span>
+            <span className="truncate min-w-0">Thêm mới chuyến đi</span>
           )}
         </button>
 

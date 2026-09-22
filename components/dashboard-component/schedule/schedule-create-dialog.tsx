@@ -1,3 +1,18 @@
+import { useMemo, useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import {
+  Calendar,
+  FileText,
+  Loader2,
+  MapPin,
+  Pencil,
+  PlusCircle,
+  Sparkles,
+  Truck,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+
 import { formatToDatetimeLocal } from "@/lib/format";
 import { ScheduleEvent } from "@/lib/types/schedule-type";
 import {
@@ -25,21 +41,8 @@ import {
   TripFormValues,
 } from "@/lib/validations/trip-validations";
 import { scheduleService } from "@/services/schedule.services";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Calendar,
-  FileText,
-  Loader2,
-  MapPin,
-  Pencil,
-  PlusCircle,
-  Sparkles,
-  Truck,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { toast } from "sonner";
 
+// --- TYPES & CONSTANTS OUTSIDE COMPONENT ---
 export interface VehicleOption {
   id: string;
   label: string;
@@ -61,7 +64,7 @@ interface CreateTripDialogProps {
   editData?: ScheduleEvent;
 }
 
-const statusOptions = [
+const STATUS_OPTIONS = [
   { value: "PLANNED", label: "Đang lên kế hoạch" },
   { value: "IN_PROGRESS", label: "Đang thực hiện" },
   { value: "COMPLETED", label: "Hoàn thành" },
@@ -69,6 +72,26 @@ const statusOptions = [
   { value: "DELAYED", label: "Đang trì hoãn" },
 ];
 
+const DEFAULT_FORM_VALUES: TripFormValues = {
+  tripCode: "",
+  vehicleId: "",
+  driverId: "",
+  startLocation: "",
+  endLocation: "",
+  estimatedStartTime: "",
+  estimatedEndTime: "",
+  status: "PLANNED",
+  notes: "",
+  originalId: "",
+};
+
+const generateTripCode = () => {
+  const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `TRIP-${dateStr}-${randomStr}`;
+};
+
+// --- MAIN COMPONENT ---
 const CreateTripDialog = ({
   open,
   refetch,
@@ -79,6 +102,14 @@ const CreateTripDialog = ({
 }: CreateTripDialogProps) => {
   const [loading, setLoading] = useState(false);
 
+  // Tối ưu Performance: Chỉ tính minDateTime 1 lần
+  const minDateTime = useMemo(() => {
+    const now = new Date();
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+  }, []);
+
   const {
     control,
     setValue,
@@ -87,120 +118,57 @@ const CreateTripDialog = ({
     formState: { errors },
   } = useForm<TripFormValues>({
     resolver: zodResolver(tripFormSchema as any),
-    defaultValues: {
-      tripCode: "",
-      vehicleId: "",
-      driverId: "",
-      startLocation: "",
-      endLocation: "",
-      estimatedStartTime: "",
-      estimatedEndTime: "",
-      status: "PLANNED",
-      notes: "",
-      originalId: "",
-    },
+    defaultValues: DEFAULT_FORM_VALUES,
   });
 
   useEffect(() => {
-    if (open) {
-      if (editData) {
-        const matchedVehicle = vehicles.find(
-          (v) => v.id === editData.vehicle?.id,
-        );
-        const matchedDriver = drivers.find((d) => d.id === editData.driver?.id);
+    if (!open) return;
 
-        reset({
-          tripCode: editData.details?.tripCode || "",
-          vehicleId: matchedVehicle
-            ? matchedVehicle.id
-            : editData.vehicle?.id || "",
-          driverId: matchedDriver
-            ? matchedDriver.id
-            : editData.driver?.id || "",
-          startLocation: editData.details?.startLocation || "",
-          endLocation: editData.details?.endLocation || "",
-          estimatedStartTime: formatToDatetimeLocal(editData.startDate),
-          estimatedEndTime: formatToDatetimeLocal(editData.endDate),
-          status: (editData.status as TripFormValues["status"]) || "PLANNED",
-          notes: editData.details?.notes || "",
-          originalId: editData.originalId || "",
-        });
-      } else {
-        reset({
-          tripCode: "",
-          vehicleId: "",
-          driverId: "",
-          startLocation: "",
-          endLocation: "",
-          estimatedStartTime: "",
-          estimatedEndTime: "",
-          status: "PLANNED",
-          notes: "",
-          originalId: "",
-        });
-      }
+    if (editData) {
+      const matchedVehicle = vehicles.find(
+        (v) => v.id === editData.vehicle?.id,
+      );
+      const matchedDriver = drivers.find((d) => d.id === editData.driver?.id);
+
+      reset({
+        tripCode: editData.details?.tripCode || "",
+        vehicleId: matchedVehicle
+          ? matchedVehicle.id
+          : editData.vehicle?.id || "",
+        driverId: matchedDriver ? matchedDriver.id : editData.driver?.id || "",
+        startLocation: editData.details?.startLocation || "",
+        endLocation: editData.details?.endLocation || "",
+        estimatedStartTime: formatToDatetimeLocal(editData.startDate),
+        estimatedEndTime: formatToDatetimeLocal(editData.endDate),
+        status: (editData.status as TripFormValues["status"]) || "PLANNED",
+        notes: editData.details?.notes || "",
+        originalId: editData.originalId || "",
+      });
+    } else {
+      reset(DEFAULT_FORM_VALUES);
     }
   }, [editData, open, vehicles, drivers, reset]);
 
-  // Xử lý khi người dùng chọn xe
-  const handleSelectVehicle = (selectedVehicleId: string) => {
-    setValue("vehicleId", selectedVehicleId, { shouldValidate: true });
-
-    // Tự gợi ý tài xế mặc định của xe (nếu có)
-    const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
-    if (selectedVehicle?.defaultDriverId) {
-      setValue("driverId", selectedVehicle.defaultDriverId, {
-        shouldValidate: true,
-      });
-    }
-  };
-
-  const generateTripCode = () => {
-    const now = new Date();
-    const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
-    const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `TRIP-${dateStr}-${randomStr}`;
-  };
-
-  const onSubmit = async (data: TripFormValues) => {
+  const onSave = async (data: TripFormValues) => {
     try {
       setLoading(true);
-      await scheduleService.createSchedule(data);
-      toast.success("Tạo chuyến đi mới thành công!");
+      const targetId = editData?.originalId;
+
+      if (targetId && editData) {
+        await scheduleService.updateSchedule(targetId, data);
+        toast.success("Cập nhật chuyến đi thành công!");
+      } else {
+        await scheduleService.createSchedule(data);
+        toast.success("Tạo chuyến đi mới thành công!");
+      }
+
       setOpen(false);
-      reset();
+      reset(DEFAULT_FORM_VALUES);
       refetch();
     } catch (error: any) {
-      console.error("Error creating schedule:", error);
-      toast.error(error.message || "Tạo lịch trình thất bại.");
+      toast.error(error.message || "Đã xảy ra lỗi khi lưu lịch trình.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleUpdateTrip = async (id: string, data: TripFormValues) => {
-    try {
-      setLoading(true);
-      await scheduleService.updateSchedule(id, data);
-      toast.success("Cập nhật chuyến đi thành công!");
-      setOpen(false);
-      reset();
-      refetch();
-    } catch (error: any) {
-      console.error("Error updating schedule:", error);
-      toast.error(error.message || "Cập nhật lịch trình thất bại.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const targetId = editData?.originalId;
-
-  const onSave = async (tripValues: TripFormValues) => {
-    if (targetId && editData) {
-      await handleUpdateTrip(targetId, tripValues);
-    } else {
-      await onSubmit(tripValues);
     }
   };
 
@@ -211,9 +179,9 @@ const CreateTripDialog = ({
           <div className="flex items-center gap-2 text-primary">
             <div className="p-2 bg-primary/10 rounded-lg">
               {editData ? (
-                <Pencil className="size-5 text-primary" />
+                <Pencil className="size-5" />
               ) : (
-                <PlusCircle className="size-5 text-primary" />
+                <PlusCircle className="size-5" />
               )}
             </div>
             <div>
@@ -229,12 +197,7 @@ const CreateTripDialog = ({
           </div>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit(onSave, (errors) =>
-            console.log("Lỗi validation:", errors),
-          )}
-          className="p-6 space-y-5"
-        >
+        <form onSubmit={handleSubmit(onSave)} className="p-6 space-y-5">
           {/* PHẦN 1: XE & TÀI XẾ */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -242,38 +205,31 @@ const CreateTripDialog = ({
             </h4>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {/* 1. XE PHÂN CÔNG */}
+              {/* XE PHÂN CÔNG */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Xe phân công *</label>
+                <Label className="text-sm font-medium">Xe phân công *</Label>
                 <Controller
                   name="vehicleId"
                   control={control}
                   render={({ field }) => {
-                    // Tìm xe được chọn dựa trên ID
                     const selectedVehicle = vehicles.find(
                       (v) => String(v.id) === String(field.value),
                     );
-
                     return (
                       <Select
                         onValueChange={(val) => {
                           field.onChange(val);
-                          // Tự động chọn tài xế mặc định nếu xe đó có gán tài xế
                           const vObj = vehicles.find(
                             (item) => String(item.id) === String(val),
                           );
-                          if (vObj?.defaultDriverId) {
+                          if (vObj?.defaultDriverId)
                             setValue("driverId", vObj.defaultDriverId);
-                          }
                         }}
                         value={field.value ? String(field.value) : ""}
                       >
                         <SelectTrigger className="h-9">
-                          {/* 💡 HIỂN THỊ TRỰC TIẾP BIỂN SỐ XE */}
                           <SelectValue placeholder="Chọn xe">
-                            {selectedVehicle
-                              ? selectedVehicle.label
-                              : undefined}
+                            {selectedVehicle?.label}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
@@ -289,27 +245,24 @@ const CreateTripDialog = ({
                 />
               </div>
 
-              {/* 2. TÀI XẾ PHỤ TRÁCH */}
+              {/* TÀI XẾ PHỤ TRÁCH */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Tài xế phụ trách</label>
+                <Label className="text-sm font-medium">Tài xế phụ trách</Label>
                 <Controller
                   name="driverId"
                   control={control}
                   render={({ field }) => {
-                    // Tìm tài xế được chọn dựa trên ID
                     const selectedDriver = drivers.find(
                       (d) => String(d.id) === String(field.value),
                     );
-
                     return (
                       <Select
                         onValueChange={field.onChange}
                         value={field.value ? String(field.value) : ""}
                       >
                         <SelectTrigger className="h-9">
-                          {/* 💡 HIỂN THỊ TRỰC TIẾP TÊN TÀI XẾ */}
                           <SelectValue placeholder="Chọn tài xế">
-                            {selectedDriver ? selectedDriver.name : undefined}
+                            {selectedDriver?.name}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
@@ -326,7 +279,7 @@ const CreateTripDialog = ({
               </div>
             </div>
 
-            {/* Mã chuyến đi */}
+            {/* MÃ CHUYẾN ĐI */}
             <div className="space-y-1.5 pt-1">
               <Label htmlFor="tripCode" className="text-xs font-medium">
                 Mã chuyến đi
@@ -446,6 +399,7 @@ const CreateTripDialog = ({
                       {...field}
                       id="estimatedStartTime"
                       type="datetime-local"
+                      min={minDateTime}
                       className="h-9 text-xs"
                     />
                   )}
@@ -472,6 +426,7 @@ const CreateTripDialog = ({
                       {...field}
                       id="estimatedEndTime"
                       type="datetime-local"
+                      min={minDateTime}
                       className="h-9 text-xs"
                     />
                   )}
@@ -493,7 +448,7 @@ const CreateTripDialog = ({
                   <Textarea
                     {...field}
                     id="notes"
-                    placeholder="Nhập ghi chú hoặc yêu cầu đặc biệt..."
+                    placeholder="Nhập ghi chú..."
                     className="min-h-17.5 resize-none text-xs"
                   />
                 )}
@@ -503,9 +458,6 @@ const CreateTripDialog = ({
 
           {/* TRẠNG THÁI */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Calendar className="size-3.5" /> Trạng thái chuyến đi
-            </h4>
             <div className="space-y-1.5">
               <Label htmlFor="status" className="text-xs font-medium">
                 Trạng thái <span className="text-destructive">*</span>
@@ -522,7 +474,7 @@ const CreateTripDialog = ({
                       <SelectValue placeholder="Chọn trạng thái" />
                     </SelectTrigger>
                     <SelectContent>
-                      {statusOptions.map((s) => (
+                      {STATUS_OPTIONS.map((s) => (
                         <SelectItem key={s.value} value={s.value}>
                           {s.label}
                         </SelectItem>
@@ -546,7 +498,7 @@ const CreateTripDialog = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => reset()}
+                onClick={() => reset(DEFAULT_FORM_VALUES)}
               >
                 Xóa dữ liệu
               </Button>
