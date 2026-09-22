@@ -1,120 +1,109 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
 import {
   Calendar,
   DiamondPlus,
   EvCharger,
+  Fuel,
+  MapPin,
   ShieldCheck,
   Star,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { Separator } from "../ui/separator";
-import { motion } from "framer-motion";
 import { Button } from "../ui/button";
+import { useTranslations } from "next-intl";
 
 const DataCard = [
   {
-    title: "Real-time Tracking",
-    description:
-      "Monitor your fleet's location and status in real-time, ensuring timely deliveries and efficient route management.",
-    icon: DiamondPlus,
-    subContent: "Active tracking",
+    key: "realtime",
+    icon: MapPin,
   },
   {
-    title: "Automated Scheduling",
-    description:
-      "Streamline your operations with automated scheduling, reducing manual effort and optimizing resource allocation.",
+    key: "scheduling",
     icon: Calendar,
-    subContent: "Efficient +18% scheduling",
   },
   {
-    title: "Fuel Analytics",
-    description:
-      "Gain insights into fuel consumption patterns, identify inefficiencies, and implement cost-saving strategies.",
-    icon: EvCharger,
-    subContent: "Cost-effective fuel management",
+    key: "analytics",
+    icon: Fuel,
   },
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.2 },
-  },
-};
+export const WhyChoose = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations("WhyUs");
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 30 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { type: "spring", stiffness: 100, damping: 15 } as const,
-  },
-};
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
 
-const divVariants = {
-  hidden: { opacity: 0, x: -30 },
-  show: {
-    opacity: 1,
-    x: 0,
-    transition: { type: "spring", stiffness: 100, damping: 15 } as const,
-  },
-};
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
 
-const pulseVariants = {
-  animate: (customDelay: number) => ({
-    scale: [1, 1.3],
-    opacity: [0.6, 0],
-    transition: {
-      duration: 2.5,
-      repeat: Infinity,
-      ease: "easeOut",
-      delay: customDelay,
-    } as const,
-  }),
-};
-const WhyChoose = () => {
+        if (entry.isIntersecting) {
+          gsap.fromTo(
+            ".why-header",
+            { opacity: 0, y: 30 },
+            { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+          );
+
+          gsap.fromTo(
+            ".why-card",
+            { opacity: 0, y: 40 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.6,
+              stagger: 0.2,
+              ease: "power2.out",
+              delay: 0.2,
+            },
+          );
+
+          gsap.fromTo(
+            ".why-testimonial",
+            { opacity: 0, y: 30 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.6,
+              ease: "power2.out",
+              delay: 0.3,
+            },
+          );
+        } else {
+          gsap.to(".why-header", { opacity: 0, y: 30, duration: 0.3 });
+          gsap.to(".why-card", { opacity: 0, y: 40, duration: 0.3 });
+          gsap.to(".why-testimonial", { opacity: 0, y: 30, duration: 0.3 });
+        }
+      },
+      { threshold: 0.15 },
+    );
+
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="py-16 px-4 max-w-7xl mx-auto space-y-12">
-      {/* Header Section */}
-      <motion.div
-        variants={cardVariants}
-        initial="hidden"
-        whileInView="show"
-        viewport={{
-          once: false,
-          amount: 0.2,
-        }}
-        className="text-center space-y-4 max-w-3xl mx-auto"
-      >
-        <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white capitalize">
-          Everything you need to manage your fleet
+    <div ref={containerRef} className="py-16 px-4 max-w-7xl mx-auto space-y-12">
+      <div className="text-center space-y-2 mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+          {t("title")}
         </h2>
-        <p className="text-sm md:text-base text-muted-foreground font-medium leading-relaxed">
-          Professional-grade tools designed for industrial efficiency and
-          data-driven decision making.
+        <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
+          {t("subtitle")}
         </p>
-      </motion.div>
+      </div>
 
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="show"
-        viewport={{
-          once: false,
-          amount: 0.2,
-        }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-12"
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {DataCard.map((card, index) => (
-          <motion.div
+          <div
             key={index}
-            variants={cardVariants}
-            whileHover={{
-              y: -8,
-              scale: 1.02,
-              transition: { duration: 0.2, ease: "easeOut" },
-            }}
-            className="h-full flex"
+            className="why-card opacity-0 h-full flex hover:-translate-y-2 hover:scale-[1.02] transition-transform duration-300 ease-out"
           >
             <Card className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between overflow-hidden relative group w-full">
               <div>
@@ -123,75 +112,48 @@ const WhyChoose = () => {
                     <card.icon className="w-6 h-6" />
                   </div>
                   <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-                    {card.title}
+                    {t(`cards.${card.key}.title`)}
                   </h3>
                 </CardHeader>
 
                 <Separator className="bg-slate-100 dark:bg-slate-800" />
 
                 <CardContent className="p-6 text-slate-600 dark:text-slate-400 text-sm leading-relaxed font-normal">
-                  {card.description}
+                  {t(`cards.${card.key}.description`)}
                 </CardContent>
               </div>
 
               <div>
                 <Separator className="bg-slate-100 dark:bg-slate-800" />
                 <CardContent className="p-4 px-6 bg-slate-50/50 dark:bg-slate-900/50 text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center justify-between">
-                  <span>{card.subContent}</span>
+                  <span>{t(`cards.${card.key}.subContent`)}</span>
                   <span className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
                     →
                   </span>
                 </CardContent>
               </div>
             </Card>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
-      <motion.div
-        variants={divVariants}
-        initial="hidden"
-        whileInView="show"
-        viewport={{
-          once: false,
-          amount: 0.1,
-        }}
-        className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center justify-center p-4"
-      >
+      <div className="why-testimonial opacity-0 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center justify-center p-4">
         <div className="flex items-center justify-center p-2 relative bg-white dark:bg-slate-950 max-w-[320px] mx-auto group">
           <div className="absolute inset-0 flex items-center justify-center -z-10 pointer-events-none">
-            <motion.div
-              variants={pulseVariants}
-              animate="animate"
-              custom={0}
-              className="absolute w-full h-full rounded-full border-2 border-blue-400 dark:border-slate-200"
-            />
-            <motion.div
-              variants={pulseVariants}
-              animate="animate"
-              custom={0.8}
-              className="absolute w-full h-full rounded-full border border-blue-400/60 dark:border-slate-200/60"
-            />
-            <motion.div
-              variants={pulseVariants}
-              animate="animate"
-              custom={1.6}
-              className="absolute w-full h-full rounded-full border border-blue-600 dark:border-slate-100"
-            />
+            <span className="absolute w-full h-full rounded-full border-2 border-blue-400 dark:border-slate-200 animate-ping opacity-25" />
+            <span className="absolute w-[120%] h-[120%] rounded-full border border-blue-400/60 dark:border-slate-200/60 animate-ping opacity-15 [animation-delay:0.5s]" />
           </div>
 
-          {/* BOX HÌNH ẢNH (Phải có nền màu bg-white để che tâm các vòng tròn đi) */}
           <div className="p-3 bg-white dark:bg-slate-950 z-10 w-full structure-img">
             <img
-              src="./ceo.jpg"
+              src="/ceo.jpg"
               alt="CEO Profile"
-              className="object-contain rounded-full w-full h-auto mx-auto"
+              className="object-contain rounded-full w-full h-auto mx-auto border-2 border-slate-100 dark:border-slate-800"
             />
           </div>
 
-          {/* NÚT VIEW PROFILE (Nổi lên trên cùng nhờ z-20) */}
           <Button
-            variant={"outline"}
+            variant="outline"
             className="absolute bottom-4 -right-4 z-20 rounded-xl shadow-md bg-white dark:bg-slate-900 transition-all duration-300 hover:-translate-y-1 hover:bg-green-500 hover:text-white hover:border-green-500"
           >
             <ShieldCheck className="w-4 h-4 mr-2" />
@@ -200,7 +162,7 @@ const WhyChoose = () => {
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
             {[1, 2, 3, 4, 5].map((star) => (
               <Star
                 key={star}
@@ -208,12 +170,14 @@ const WhyChoose = () => {
               />
             ))}
           </div>
-          <p className="text-sm md:text-lg font-bold text-slate-900 dark:text-white tracking-tight text-justify">
+
+          <p className="text-base md:text-lg font-bold text-slate-900 dark:text-white tracking-tight text-justify leading-snug">
             "Switching to Logistics Core was the single best decision we made
             this year. We saved 20% on fuel costs in the first quarter alone,
             and the dispatch interface is so intuitive our drivers actually
             enjoy using it."
           </p>
+
           <div>
             <p className="text-lg font-semibold text-slate-900 dark:text-white">
               Marcus Thorne
@@ -222,13 +186,14 @@ const WhyChoose = () => {
               CEO, Thorne Expedited Freight
             </p>
           </div>
-          <span className="flex items-center gap-4 font-bold text-muted-foreground text-sm">
-            <p>Forbers</p>
-            <p>Logistics Day</p>
-            <p>Tech Daily</p>
-          </span>
+
+          <div className="flex items-center gap-6 font-bold text-muted-foreground/80 text-xs tracking-wider uppercase pt-2">
+            <span>Forbes</span>
+            <span>Logistics Day</span>
+            <span>Tech Daily</span>
+          </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

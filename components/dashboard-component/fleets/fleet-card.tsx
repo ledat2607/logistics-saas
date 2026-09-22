@@ -12,6 +12,7 @@ import {
   Loader,
   Mail,
   Pencil,
+  RefreshCcw,
 } from "lucide-react";
 
 // Components
@@ -374,13 +375,18 @@ const FleetsContainer = ({
                   </div>
                 </div>
 
-                <div className="pt-3 border-t">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5" /> Vị trí hiện tại
-                  </span>
-                  <p className="text-xs font-medium mt-1">
-                    {maintainceLog?.garageLocation || "Chưa cập nhật vị trí"}
-                  </p>
+                <div className="pt-3 border-t flex items-center justify-between">
+                  <div>
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5" /> Vị trí hiện tại
+                    </span>
+                    <p className="text-xs font-medium mt-1">
+                      {maintainceLog?.garageLocation || "Chưa cập nhật vị trí"}
+                    </p>
+                  </div>
+                  <Button title="Cập nhật lại vị trí" size={"icon-sm"}>
+                    <RefreshCcw className="transition-transform duration-500 ease-in-out group-hover:rotate-180" />
+                  </Button>
                 </div>
 
                 <div className="pt-3 border-t space-y-2">
@@ -505,7 +511,7 @@ const FleetsContainer = ({
                     className="w-full mt-2 col-span-6"
                   >
                     <Pencil className="w-4 h-4 mr-2" />
-                    <p className="xl:block hidden">Edit</p>
+                    <p className="xl:block hidden">Chỉnh sửa</p>
                   </Button>
                   <Button
                     disabled={loading}
@@ -520,7 +526,7 @@ const FleetsContainer = ({
                     ) : (
                       <>
                         <Trash className="w-4 h-4 mr-1" />{" "}
-                        <p className="xl:block hidden">Remove vehicle</p>
+                        <p className="xl:block hidden">Xóa phương tiện</p>
                       </>
                     )}
                   </Button>
