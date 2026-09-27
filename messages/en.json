@@ -29,6 +29,37 @@
     },
     "imageAlt": "Fleet Management Dashboard"
   },
+  "Features": {
+    "badge": "Cutting-edge Features",
+    "title": "Comprehensive Solution for Modern Supply Chains",
+    "description": "Boost productivity and optimize your logistics costs with industry-leading technology.",
+    "items": {
+      "tracking": {
+        "title": "Real-time Tracking",
+        "description": "Get precise order coordinates and live status updates powered by high-precision satellite GPS."
+      },
+      "analytics": {
+        "title": "Smart Analytics",
+        "description": "Analyze transport performance, optimize route efficiency, and forecast operational costs using AI."
+      },
+      "security": {
+        "title": "End-to-End Security",
+        "description": "Automated incident alerts paired with integrated cargo insurance for total peace of mind."
+      },
+      "dispatch": {
+        "title": "Optimized Delivery",
+        "description": "Intelligent load distribution algorithms that reduce nationwide transit time by up to 35%."
+      },
+      "warehouse": {
+        "title": "Warehouse Automation",
+        "description": "Manage flexible inventory, generate instant invoices, and dispatch vehicles with just 1-click."
+      },
+      "fleet": {
+        "title": "Fleet Management",
+        "description": "Monitor maintenance schedules, fuel levels, and driver performance seamlessly."
+      }
+    }
+  },
   "WhyUs": {
     "title": "Why Choose Our Platform",
     "subtitle": "Built specifically to solve complex logistics challenges with speed and accuracy",
@@ -50,12 +81,82 @@
       }
     }
   },
+  "Solutions": {
+    "badge": "Tailored Solutions",
+    "title": "Designed for Every Logistics Business Model",
+    "ecommerce": {
+      "badge": "E-Commerce Businesses",
+      "title": "High-Volume Automated Order Fulfillment",
+      "description": "Connect directly via API with major e-commerce platforms to process thousands of daily shipments without bottlenecks.",
+      "highlights": [
+        "24/7 Automated Order Sync",
+        "Optimized Last-mile Delivery Costs",
+        "Ultra-fast Bulk Shipping Label Printing"
+      ]
+    },
+    "fleetOwners": {
+      "badge": "Fleet Owners & Carriers",
+      "title": "Load Optimization & Deadhead Reduction",
+      "description": "Connect your fleet with nationwide trusted shippers, ensuring your trucks stay fully loaded on backhauls.",
+      "highlights": [
+        "GPS-based Smart Load Matching",
+        "Fast & Transparent Payments",
+        "Accurate Fuel & Schedule Tracking"
+      ]
+    }
+  },
+  "Pricing": {
+    "badge": "Flexible Pricing",
+    "title": "Choose the Right Plan for Your Scale",
+    "perMonth": "/month",
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "price": "$0",
+        "description": "Ideal for individuals or small shops wanting to experience the core system.",
+        "cta": "Start for Free",
+        "features": [
+          "Manage up to 100 shipments/mo",
+          "Real-time location tracking",
+          "Basic reporting",
+          "Standard Email Support"
+        ]
+      },
+      "growth": {
+        "name": "Growth",
+        "price": "$59",
+        "popularBadge": "Most Popular",
+        "description": "Designed for growing businesses looking to scale operations.",
+        "cta": "Get Started Now",
+        "features": [
+          "Up to 5,000 shipments/mo",
+          "AI Route Optimization",
+          "E-commerce API Integration",
+          "Advanced Analytics & Export",
+          "24/7 Priority Support"
+        ]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "Custom",
+        "description": "Customized end-to-end solutions for large fleets & warehouse chains.",
+        "cta": "Contact Sales",
+        "features": [
+          "Unlimited Shipments",
+          "Dedicated Server Infrastructure",
+          "Custom Algorithm Development",
+          "99.99% SLA Guarantee",
+          "Dedicated Account Manager"
+        ]
+      }
+    }
+  },
+  "CtaBanner": {
+    "title": "Ready to Optimize Your Logistics with Logistics Core?",
+    "description": "Experience a 14-day free trial with full access. No credit card required.",
+    "btnStarted": "Start Free Trial"
+  },
   "Footer": {
-    "ctaTitle": "Ready to optimize your logistics?",
-    "ctaSub": "Join 500+ businesses today",
-    "ctaDesc": "Start your 14-day free trial. No credit card required.",
-    "btnTrial": "Start Free Trial",
-    "btnSales": "Talk to Sales",
     "brandDesc": "Advanced fleet management for the modern era. Reliability, precision, and mission control at your fingertips.",
     "product": {
       "title": "Product",

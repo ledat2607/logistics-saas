@@ -103,3 +103,5 @@ export const TrustedCompanies = () => {
     </section>
   );
 };
+
+export default TrustedCompanies;

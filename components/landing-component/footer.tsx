@@ -42,27 +42,6 @@ export const Footer = () => {
       ref={containerRef}
       className="w-full text-white py-12 lg:space-y-16 space-y-12"
     >
-      {/* Call To Action Card */}
-      <div className="footer-cta-card opacity-0 cursor-pointer">
-        <Card className="max-w-7xl h-100 mx-auto bg-slate-600 dark:bg-slate-800 text-white p-8 rounded-lg shadow-lg flex items-center justify-center flex-col">
-          <CardContent className="text-center space-y-7">
-            <p className="text-5xl font-bold tracking-tighter">
-              {t("ctaTitle")}
-            </p>
-            <p className="text-5xl text-amber-500/80 font-extrabold">
-              {t("ctaSub")}
-            </p>
-            <p className="text-sm font-light text-muted">{t("ctaDesc")}</p>
-            <div className="flex items-center justify-center gap-4">
-              <Button className="px-3 py-5">{t("btnTrial")}</Button>
-              <Button variant="outline" className="px-3 py-5">
-                {t("btnSales")}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Main Footer Section */}
       <footer className="w-full border-t border-gray-200 bg-white px-4 py-8 dark:bg-zinc-950 dark:border-zinc-800">
         <div className="max-w-7xl mx-auto">
