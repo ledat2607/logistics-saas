@@ -10,53 +10,156 @@
     "goToDashboard": "Vào Dashboard"
   },
   "Hero": {
-    "badge": "Trung tâm điều hành quản lý đội xe & vận tải",
+    "badge": "Trung tâm điều hành & quản lý đội xe logistics",
     "titleLine1": "Tối ưu đội xe,",
-    "titleLine2": "Bứt phá dịch vụ.",
-    "description": "Giải pháp quản lý vận tải chính xác dành cho doanh nghiệp vừa và nhỏ. Theo dõi thời gian thực, tự động hóa lịch trình và phân tích nhiên liệu nâng cao trên một nền tảng duy nhất.",
-    "btnGetStarted": "Đăng ký miễn phí",
+    "titleLine2": "Bứt phá tăng trưởng.",
+    "description": "Giải pháp quản lý vận tải chính xác dành cho các chủ xe vừa và nhỏ. Theo dõi thời gian thực, tự động hóa lịch trình và phân tích nhiên liệu nâng cao trên một giao diện tập trung.",
+    "btnGetStarted": "Bắt đầu miễn phí",
     "btnWatchDemo": "Xem Demo",
     "stats": {
       "onTimeDelivery": "Giao hàng đúng giờ",
       "fuelSavings": "Tiết kiệm nhiên liệu",
-      "gpsTracking": "Định vị GPS 24/7"
+      "gpsTracking": "Định vị GPS"
     },
     "cards": {
       "activeVehicles": "Xe đang hoạt động",
-      "fleetOnline": "128 Xe trực tuyến",
+      "fleetOnline": "128 Xe đang kết nối",
       "security": "Bảo mật",
       "isoCertified": "Chứng nhận ISO 27001"
     },
     "imageAlt": "Giao diện quản lý đội xe"
   },
+  "Features": {
+    "badge": "Tính năng vượt trội",
+    "title": "Giải pháp toàn diện cho chuỗi cung ứng hiện đại",
+    "description": "Nâng cao năng suất và tối ưu hóa chi phí logistics của bạn với công nghệ hàng đầu.",
+    "items": {
+      "tracking": {
+        "title": "Theo dõi Real-time",
+        "description": "Cập nhật tọa độ, vị trí đơn hàng chính xác theo thời gian thực dựa trên bản đồ vệ tinh GPS."
+      },
+      "analytics": {
+        "title": "Báo cáo thông minh",
+        "description": "Phân tích hiệu suất vận chuyển, tối ưu hóa tuyến đường và dự báo chi phí bằng AI."
+      },
+      "security": {
+        "title": "Bảo hiểm & An toàn",
+        "description": "Tự động cảnh báo sự cố, tích hợp bảo hiểm vận chuyển end-to-end an toàn tuyệt đối."
+      },
+      "dispatch": {
+        "title": "Giao hàng tối ưu",
+        "description": "Thuật toán chia tải thông minh giúp rút ngắn 35% thời gian giao nhận trên toàn quốc."
+      },
+      "warehouse": {
+        "title": "Tự động hóa kho",
+        "description": "Quản lý tồn kho linh hoạt, tự động xuất hóa đơn và điều phối xe chỉ với 1-click."
+      },
+      "fleet": {
+        "title": "Quản lý đội xe",
+        "description": "Theo dõi lịch trình bảo dưỡng, tình trạng nhiên liệu và hiệu suất làm việc của tài xế."
+      }
+    }
+  },
   "WhyUs": {
     "title": "Tại sao chọn chúng tôi",
-    "subtitle": "Giải pháp toàn diện giúp tối ưu hóa vận tải và quản lý đội xe hiệu quả",
+    "subtitle": "Được thiết kế chuyên biệt để giải quyết các thách thức logistics phức tạp với tốc độ và độ chính xác cao",
     "cards": {
       "realtime": {
         "title": "Theo dõi thời gian thực",
-        "description": "Giám sát vị trí, tốc độ và mức tiêu thụ nhiên liệu của đội xe theo thời gian thực với công nghệ GPS chính xác.",
-        "subContent": "Khám phá bản đồ sống"
+        "description": "Giám sát vị trí, vận tốc và mức tiêu hao nhiên liệu của đội xe theo thời gian thực với công nghệ GPS độ chính xác cao.",
+        "subContent": "Khám phá bản đồ trực tuyến"
       },
       "scheduling": {
-        "title": "Điều xe thông minh",
-        "description": "Tự động hóa lịch trình và tối ưu tuyến đường để giảm thiểu thời gian chờ và tình trạng trễ hàng.",
-        "subContent": "Tìm hiểu tính năng điều xe"
+        "title": "Điều phối thông minh",
+        "description": "Tự động hóa việc điều xe và quy hoạch tuyến đường nhằm giảm thiểu thời gian chờ và tránh trễ hạn giao hàng.",
+        "subContent": "Tìm hiểu quy trình điều xe"
       },
       "analytics": {
-        "title": "Phân tích nhiên liệu",
-        "description": "Báo cáo chuyên sâu về mức tiêu thụ nhiên liệu, giúp phát hiện thất thoát và tối ưu chi phí vận hành.",
+        "title": "Phân tích nhiên liệu nâng cao",
+        "description": "Nắm bắt chuyên sâu về thói quen tiêu thụ nhiên liệu, ngăn ngừa thất thoát và tình trạng chạy không tải lãng phí.",
         "subContent": "Xem báo cáo mẫu"
       }
     }
   },
+  "Solutions": {
+    "badge": "Giải pháp chuyên biệt",
+    "title": "Thiết kế riêng cho từng mô hình kinh doanh",
+    "ecommerce": {
+      "badge": "Doanh nghiệp E-Commerce",
+      "title": "Tự động hóa hoàn tất đơn hàng hàng loạt",
+      "description": "Kết nối trực tiếp API với các sàn TMĐT lớn để xử lý hàng ngàn đơn hàng mỗi ngày mà không bị nghẽn.",
+      "highlights": [
+        "Đồng bộ đơn hàng tự động 24/7",
+        "Tối ưu chi phí giao hàng chặng cuối (Last-mile)",
+        "In nhãn vận chuyển hàng loạt siêu tốc"
+      ]
+    },
+    "fleetOwners": {
+      "badge": "Chủ xe & Đội vận tải",
+      "title": "Tối ưu hóa tải trọng & Giảm xe rỗng",
+      "description": "Kết nối đội xe của bạn với mạng lưới chủ hàng uy tín trên toàn quốc, đảm bảo xe luôn có tải ở chiều về.",
+      "highlights": [
+        "Ghép chuyến thông minh dựa trên vị trí GPS",
+        "Thanh toán nhanh chóng, minh bạch",
+        "Quản lý nhiên liệu và lịch trình chính xác"
+      ]
+    }
+  },
+  "Pricing": {
+    "badge": "Bảng giá linh hoạt",
+    "title": "Chọn gói phù hợp với quy mô của bạn",
+    "perMonth": "/tháng",
+    "plans": {
+      "starter": {
+        "name": "Khởi tạo",
+        "price": "0 đ",
+        "description": "Dành cho cá nhân hoặc cửa hàng nhỏ muốn trải nghiệm hệ thống.",
+        "cta": "Dùng thử miễn phí",
+        "features": [
+          "Quản lý tối đa 100 đơn/tháng",
+          "Theo dõi vị trí thời gian thực",
+          "Báo cáo cơ bản",
+          "Hỗ trợ qua Email"
+        ]
+      },
+      "growth": {
+        "name": "Tăng trưởng",
+        "price": "1.490.000 đ",
+        "popularBadge": "Phổ biến nhất",
+        "description": "Dành cho doanh nghiệp vừa và nhỏ đang phát triển nhanh.",
+        "cta": "Bắt đầu ngay",
+        "features": [
+          "Quản lý lên tới 5.000 đơn/tháng",
+          "Tối ưu tuyến đường bằng AI",
+          "Tích hợp API sàn TMĐT",
+          "Báo cáo chuyên sâu & Xuất Excel",
+          "Hỗ trợ ưu tiên 24/7"
+        ]
+      },
+      "enterprise": {
+        "name": "Doanh nghiệp",
+        "price": "Liên hệ",
+        "description": "Giải pháp tùy chỉnh toàn diện cho tập đoàn & chuỗi kho bãi.",
+        "cta": "Liên hệ tư vấn",
+        "features": [
+          "Không giới hạn số lượng đơn",
+          "Hạ tầng máy chủ riêng (Dedicated)",
+          "Tùy biến thuật toán theo yêu cầu",
+          "Cam kết chất lượng dịch vụ SLA 99.99%",
+          "Quản lý tài khoản riêng (Account Manager)"
+        ]
+      }
+    }
+  },
+  "CtaBanner": {
+    "title": "Sẵn sàng tối ưu hóa vận tải cùng Logistics Core?",
+    "description": "Trải nghiệm miễn phí 14 ngày đầy đủ tính năng. Không yêu cầu thẻ tín dụng.",
+    "btnStarted": "Dùng thử miễn phí"
+  },
   "Footer": {
-    "ctaTitle": "Sẵn sàng tối ưu hóa vận tải của bạn?",
-    "ctaSub": "Tham gia cùng hơn 500+ doanh nghiệp ngay hôm nay",
-    "ctaDesc": "Bắt đầu 14 ngày dùng thử miễn phí. Không yêu cầu thẻ tín dụng.",
-    "btnTrial": "Bắt đầu dùng thử miễn phí",
-    "btnSales": "Liên hệ tư vấn",
-    "brandDesc": "Quản lý đội xe hiện đại. Tin cậy, chính xác và kiểm soát toàn diện ngay trong tầm tay bạn.",
+    "btnTrial": "Dùng thử miễn phí",
+    "btnSales": "Liên hệ bộ phận kinh doanh",
+    "brandDesc": "Hệ thống quản lý đội xe hiện đại. Tin cậy, chính xác và làm chủ mọi hành trình.",
     "product": {
       "title": "Sản phẩm",
       "aboutUs": "Về chúng tôi",
@@ -71,12 +174,12 @@
     },
     "newsletter": {
       "title": "Bản tin",
-      "desc": "Cập nhật những công nghệ vận tải và logistics mới nhất.",
-      "placeholder": "email@vi-du.com",
+      "desc": "Cập nhật những công nghệ logistics mới nhất.",
+      "placeholder": "email@vd.com",
       "btnJoin": "Đăng ký"
     },
     "copyright": "© 2026 Logistics Core. Bảo lưu mọi quyền.",
-    "language": "Tiếng Việt",
-    "systemStatus": "Hệ thống hoạt động"
+    "language": "Tiếng Việt (VN)",
+    "systemStatus": "Hệ thống hoạt động bình thường"
   }
 }

@@ -15,8 +15,7 @@ import { useTranslations } from "next-intl";
 
 export const Hero = () => {
   const heroRef = useRef<HTMLDivElement>(null);
-  const t = useTranslations("Hero")
-
+  const t = useTranslations("Hero");
 
   useEffect(() => {
     const el = heroRef.current;
@@ -96,10 +95,11 @@ export const Hero = () => {
 
   return (
     <section
+      id="hero"
       ref={heroRef}
       className="relative min-h-[85vh] flex flex-col justify-center max-w-7xl mx-auto px-4 py-12 lg:py-20 overflow-hidden"
     >
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-amber-500/10 dark:bg-amber-500/5 blur-[120px] rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-125 bg-amber-500/10 dark:bg-amber-500/5 blur-[120px] rounded-full pointer-events-none -z-10" />
 
       <div className="grid lg:grid-cols-12 grid-cols-1 gap-12 lg:gap-8 items-center">
         <div className="lg:col-span-7 space-y-6">
